@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RPG Companion</title>
+    <!-- Arquivo de estilo -->
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <header class="cabecalho-topo">
+  <div class="logo">
+    <h1>⚔️ RPG Companion</h1>
+  </div>
+  
+  <nav class="menu-controles">
+    <button id="btn-sobre" class="btn-topo">Sobre</button>
+    <button id="btn-ajuda" class="btn-topo">Ajuda</button>
+    <button id="btn-config" class="btn-topo">Configurações</button>
+    <button id="btn-tema" class="btn-topo">🌓 Modo Dark/Light</button>
+  </nav>
+</header>
+
+    <main class="dashboard">
+
+<section class="painel iniciativa">
+      <h2>Iniciativa</h2>
+      <button onclick="limparIniciativa()" style="margin-bottom: 10px; cursor: pointer;">Limpar Combate</button>
+      <div id="lista-iniciativa-conteudo"></div> 
+    </section>
+
+    <section class="painel rolador">
+      <h2>Rolador de Dados</h2>
+      <div class="botoes-dados">
+      <button onclick="rolarDado(4)"title="Rolar d4">
+      <img src="img/d4.png" alt="d4"></button>
+      <button onclick="rolarDado(6)" title="Rolar d6">
+      <img src="img/d6.png" alt="d6"></button>
+      <button onclick="rolarDado(8)" title="Rolar d8">
+      <img src="img/d8.png" alt="d8"></button>
+      <button onclick="rolarDado(10)" title="Rolar d10">
+      <img src="img/d10.png" alt="d10"></button>
+      <button onclick="rolarDado(12)" title="Rolar d12">
+      <img src="img/d12.png" alt="d12"></button>
+      <button onclick="rolarDado(20)" title="Rolar d20">
+      <img src="img/d20.png" alt="d20"></button>
+      <button onclick="rolarDado(100)" title="Rolar d100">
+      <img src="img/d100.png" alt="d100"></button>
+      <div class="controle-modificador">
+      <label for="quantidade">Qtd:</label>
+      <input type="number" id="quantidade" value="1" min="1">
+      <label for="modificador">Modificador:</label>
+      <input type="number" id="modificador" value="0">
+</div>
+      </div>
+
+      <div id="resultado-dado">
+      <span class="label">Resultado:</span>
+      <span class="valor">-</span>
+      </div>
+    </section>
+
+    <section class="painel anotacoes">
+      <h2>Anotações</h2>
+      <textarea id="campo-anotacoes" placeholder="Digite suas anotações aqui..."></textarea>
+    </section>
+
+    <section class="painel turno">
+      <h2>Controle de Turno</h2>
+    </section>
+
+    <section class="painel status">
+      <h2>Vida e Status do Grupo</h2>
+    </section>
+
+    <section class="painel historico">
+      <h2>Histórico da Sessão</h2>
+      <div id="log-historico"></div>
+    </section>
+
+    <section class="painel monstros">
+      <h2>Coletânea de Monstros</h2>
+    </section>
+
+  </main>
+    
+    <!-- Arquivo JS -->
+     <script src="js/script.js"></script>
+
+</body>
+</html>
