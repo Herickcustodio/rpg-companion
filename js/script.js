@@ -259,6 +259,36 @@ function renderizarColetanea() {
   });
 }
 
+/* ==========================================================================
+   6. MODAIS E INTERAÇÕES DIVERSAS
+   ========================================================================== */
+
+// ===== MODAL SOBRE =====
+
+function configurarModal(btnId, modalId, fecharId) {
+    const botao = document.getElementById(btnId);
+    const modal = document.getElementById(modalId);
+    const fechar = document.getElementById(fecharId);
+
+    botao.addEventListener("click", () => {
+        modal.classList.remove("oculto");
+    });
+
+    fechar.addEventListener("click", () => {
+        modal.classList.add("oculto");
+    });
+
+    window.addEventListener("click", (e) => {
+        if (e.target === modal) {
+            modal.classList.add("oculto");
+        }
+    });
+}
+
+configurarModal("btn-sobre", "modal-sobre", "fechar-sobre");
+configurarModal("btn-config", "modal-config", "fechar-config");
+configurarModal("btn-ajuda", "modal-ajuda", "fechar-ajuda");
+
 // Inicialização
 window.onload = () => {
     renderizarColetanea();
@@ -271,3 +301,4 @@ window.onload = () => {
         areaAnotacoes.addEventListener("input", () => localStorage.setItem("anotacoesRPG", areaAnotacoes.value));
     }
 };
+
