@@ -9,6 +9,9 @@ let partyHerois = JSON.parse(localStorage.getItem("partyHeroisRPG")) || [];
 const coletaneaMonstros = [
   { nome: "Goblin", vidaMax: 7 },
   { nome: "Orc", vidaMax: 15 },
+  { nome: "Abissal", vidaMax: 50 },
+  { nome: "Grifo", vidaMax: 50 },
+  { nome: "Homunculo", vidaMax: 50 },
   { nome: "Dragão Filhote", vidaMax: 50 }
 ];
 
@@ -239,7 +242,7 @@ function rolarDado(lados) {
 function adicionarHistorico(texto) {
   const log = document.getElementById("log-historico");
   const item = document.createElement("div");
-  item.style = "padding: 4px 0; border-bottom: 1px solid #333; font-size: 13px; color: #eee;";
+  item.style = "padding: 4px 0; border-bottom: 1px solid #333; font-size: 13px; font-weight: bold; color: #eee;";
   item.textContent = texto;
   log.appendChild(item);
   log.scrollTop = log.scrollHeight;
