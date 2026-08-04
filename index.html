@@ -4,112 +4,137 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RPG Companion</title>
-    <!-- Arquivo de estilo -->
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
 
-    <header class="cabecalho-topo">
-  <div class="logo">
-    <h1>⚔️ RPG Companion</h1>
-  </div>
-  
-  <nav class="menu-controles">
-    <button id="btn-sobre" class="btn-topo">Sobre</button>
-    <button id="btn-ajuda" class="btn-topo">Ajuda</button>
-    <button id="btn-config" class="btn-topo">Configurações</button>
-    <button id="btn-tema" class="btn-topo">🌓 Modo Dark/Light</button>
-  </nav>
+  <header class="cabecalho-topo">
+    <div class="logo">
+      <h1>⚔️ RPG Companion</h1>
+    </div>
 
-  <!-- Modal Sobre -->
-  <div id="modal-sobre" class="modal oculto">
-    <div class="modal-conteudo">
-    <span class="fechar-modal" id="fechar-sobre">&times;</span>
+    <nav class="menu-controles">
+      <button id="btn-sobre" class="btn-topo">Sobre</button>
+      <button id="btn-ajuda" class="btn-topo">Ajuda</button>
+      <button id="btn-config" class="btn-topo">Configurações</button>
+      <button id="btn-tema" class="btn-topo">🌓 Modo Dark/Light</button>
+    </nav>
 
-    <h2>Sobre o RPG Companion</h2>
-
-    <p>
-      O RPG Companion é uma ferramenta auxiliar para mesas de RPG.
-    </p>
-
-    <p>
-      Recursos atuais:
-    </p>
-
-    <ul>
-      <li>Rolador de dados</li>
-      <li>Controle de iniciativa</li>
-      <li>Anotações rápidas</li>
-      <li>Histórico da sessão</li>
-      <li>Status do grupo</li>
-    </ul>
-
-    <p>
-      Desenvolvido por Herick 🚀
-    </p>
-    </div>  
-  </div>
+    <!-- Modal Sobre -->
+    <div id="modal-sobre" class="modal oculto">
+      <div class="modal-conteudo">
+        <span class="fechar-modal" id="fechar-sobre">&times;</span>
+        <h2>Sobre o RPG Companion</h2>
+        <p>O RPG Companion é uma ferramenta auxiliar para mesas de RPG.</p>
+        <p>Recursos atuais:</p>
+        <ul>
+          <li>Rolador de dados</li>
+          <li>Controle de iniciativa</li>
+          <li>Anotações rápidas</li>
+          <li>Histórico da sessão</li>
+          <li>Status do grupo</li>
+        </ul>
+        <p>Desenvolvido por Herick 🚀</p>
+      </div>
+    </div>
 
     <!-- Modal Ajuda -->
-  <div id="modal-ajuda" class="modal oculto">
-    <div class="modal-conteudo">
-    <span class="fechar-modal" id="fechar-ajuda">&times;</span>
-
-    <h2>Ajuda</h2>
-
-    <p> Texto de ajuda e instruções para usar o RPG Companion. </p>
-    </div>  
-  </div>
+    <div id="modal-ajuda" class="modal oculto">
+      <div class="modal-conteudo">
+        <span class="fechar-modal" id="fechar-ajuda">&times;</span>
+        <h2>Ajuda</h2>
+        <p>Texto de ajuda e instruções para usar o RPG Companion.</p>
+      </div>
+    </div>
 
     <!-- Modal Configurações -->
-  <div id="modal-config" class="modal oculto">
-    <div class="modal-conteudo">
-    <span class="fechar-modal" id="fechar-config">&times;</span>
+    <div id="modal-config" class="modal oculto">
+      <div class="modal-conteudo">
+        <span class="fechar-modal" id="fechar-config">&times;</span>
+        <h2>Configurações</h2>
+        <p>Texto de configurações para usar o RPG Companion.</p>
+      </div>
+    </div>
 
-    <h2>Configurações</h2>
+    <!-- Modal Novo Herói (substitui os prompts encadeados) -->
+    <div id="modal-heroi" class="modal oculto">
+      <div class="modal-conteudo">
+        <span class="fechar-modal" id="fechar-heroi">&times;</span>
+        <h2>Novo Herói</h2>
+        <div class="form-heroi">
+          <label for="heroi-nome">Nome</label>
+          <input type="text" id="heroi-nome" placeholder="Ex: Aragorn" />
 
-    <p> Texto de configurações para usar o RPG Companion. </p>
-    </div>  
-  </div>
+          <label for="heroi-classe">Classe</label>
+          <input type="text" id="heroi-classe" placeholder="Ex: Guerreiro, Mago..." />
 
-</header>
+          <label for="heroi-nivel">Nível</label>
+          <input type="number" id="heroi-nivel" value="1" min="1" />
 
-    <main class="dashboard">
+          <label for="heroi-hp">HP Máximo</label>
+          <input type="number" id="heroi-hp" value="10" min="1" />
 
-<section class="painel iniciativa">
+          <button id="btn-confirmar-heroi" class="btn-confirmar">Criar Herói</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Iniciativa do Herói -->
+    <div id="modal-iniciativa" class="modal oculto">
+      <div class="modal-conteudo">
+        <span class="fechar-modal" id="fechar-iniciativa">&times;</span>
+        <h2 id="modal-iniciativa-titulo">Iniciativa</h2>
+        <div class="form-heroi">
+
+          <label for="ini-modificador">Modificador de Iniciativa</label>
+          <input type="number" id="ini-modificador" value="0" />
+
+          <div class="ini-rolar-area">
+            <button id="btn-rolar-ini" class="btn-rolar-ini">🎲 Rolar d20</button>
+            <div id="ini-resultado-display" class="ini-resultado-display oculto">
+              <span id="ini-dado-valor" class="ini-dado-valor">—</span>
+              <span id="ini-formula" class="ini-formula"></span>
+            </div>
+          </div>
+
+          <label for="ini-valor-manual">Ou digite manualmente</label>
+          <input type="number" id="ini-valor-manual" placeholder="Valor final" />
+
+          <button id="btn-confirmar-ini" class="btn-confirmar">Confirmar Iniciativa</button>
+        </div>
+      </div>
+    </div>
+
+  </header>
+
+  <main class="dashboard">
+
+    <section class="painel iniciativa">
       <h2>Iniciativa</h2>
-      <button onclick="limparIniciativa()" style="margin-bottom: 10px; cursor: pointer;">Limpar Combate</button>
-      <div id="lista-iniciativa-conteudo"></div> 
+      <button class="btn-limpar-combate" onclick="limparIniciativa()">Limpar Combate</button>
+      <div id="lista-iniciativa-conteudo"></div>
     </section>
 
     <section class="painel rolador">
       <h2>Rolador de Dados</h2>
       <div class="botoes-dados">
-      <button onclick="rolarDado(4)"title="Rolar d4">
-      <img src="img/d4.png" alt="d4"></button>
-      <button onclick="rolarDado(6)" title="Rolar d6">
-      <img src="img/d6.png" alt="d6"></button>
-      <button onclick="rolarDado(8)" title="Rolar d8">
-      <img src="img/d8.png" alt="d8"></button>
-      <button onclick="rolarDado(10)" title="Rolar d10">
-      <img src="img/d10.png" alt="d10"></button>
-      <button onclick="rolarDado(12)" title="Rolar d12">
-      <img src="img/d12.png" alt="d12"></button>
-      <button onclick="rolarDado(20)" title="Rolar d20">
-      <img src="img/d20.png" alt="d20"></button>
-      <button onclick="rolarDado(100)" title="Rolar d100">
-      <img src="img/d100.png" alt="d100"></button>
-      <div class="controle-modificador">
-      <label for="quantidade">Qtd:</label>
-      <input type="number" id="quantidade" value="1" min="1">
-      <label for="modificador">Modificador:</label>
-      <input type="number" id="modificador" value="0">
-</div>
+        <button onclick="rolarDado(4)" title="Rolar d4"><img src="img/d4.png" alt="d4"></button>
+        <button onclick="rolarDado(6)" title="Rolar d6"><img src="img/d6.png" alt="d6"></button>
+        <button onclick="rolarDado(8)" title="Rolar d8"><img src="img/d8.png" alt="d8"></button>
+        <button onclick="rolarDado(10)" title="Rolar d10"><img src="img/d10.png" alt="d10"></button>
+        <button onclick="rolarDado(12)" title="Rolar d12"><img src="img/d12.png" alt="d12"></button>
+        <button onclick="rolarDado(20)" title="Rolar d20"><img src="img/d20.png" alt="d20"></button>
+        <button onclick="rolarDado(100)" title="Rolar d100"><img src="img/d100.png" alt="d100"></button>
+        <div class="controle-modificador">
+          <label for="quantidade">Qtd:</label>
+          <input type="number" id="quantidade" value="1" min="1">
+          <label for="modificador">Modificador:</label>
+          <input type="number" id="modificador" value="0">
+        </div>
       </div>
-
       <div id="resultado-dado">
-      <span class="label">Resultado:</span>
-      <span class="valor">-</span>
+        <span class="label">Resultado:</span>
+        <span class="valor">-</span>
       </div>
     </section>
 
@@ -120,27 +145,32 @@
 
     <section class="painel turno">
       <h2>Controle de Turno</h2>
-    </section>
-
-    <section class="painel status">
-      <h2>Vida e Status do Grupo</h2>
-      <div id="conteudo-status-grupo">
-    </div>
+      <div class="turno-controles">
+        <button id="btn-turno-anterior" class="btn-turno">◀ Anterior</button>
+        <button id="btn-proximo-turno"  class="btn-turno btn-turno--proximo">Próximo ▶</button>
+      </div>
+      <p class="turno-dica">Avance o turno para destacar o combatente ativo na iniciativa.</p>
     </section>
 
     <section class="painel historico">
       <h2>Histórico da Sessão</h2>
+      <button class="btn-limpar-combate" onclick="limparHistorico()">Limpar Histórico</button>
       <div id="log-historico"></div>
+    </section>
+
+    <section class="painel status">
+      <h2>Vida e Status do Grupo</h2>
+      <div id="conteudo-status-grupo"></div>
     </section>
 
     <section class="painel monstros">
       <h2>Coletânea de Monstros</h2>
+      <div id="conteudo-monstros"></div>
     </section>
 
   </main>
-    
-    <!-- Arquivo JS -->
-     <script src="js/script.js"></script>
+
+  <script src="js/script.js"></script>
 
 </body>
 </html>

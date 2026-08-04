@@ -6,6 +6,7 @@ body {
   font-family: Arial, sans-serif;
   background: #1b1b1b;
   color: #f0f0f0;
+  overflow: hidden;
 }
 
 /* ==========================================================================
@@ -53,15 +54,11 @@ body {
    ========================================================================== */
 .dashboard {
   display: grid;
-
   grid-template-columns: 300px 1fr 1fr 1fr;
   grid-template-rows: 1fr 1fr;
-
   gap: 8px;
   padding: 8px;
-
   height: calc(100vh - 55px);
-
   box-sizing: border-box;
 }
 
@@ -69,87 +66,323 @@ body {
   background: #2a2a2a;
   border: 1px solid #444;
   border-radius: 8px;
-
   padding: 6px;
-
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-  transition: 0.2s;
-
+  transition: border-color 0.2s, transform 0.2s;
   display: flex;
   flex-direction: column;
-
   min-height: 0;
 }
 
 .painel h2 {
   margin-top: 0;
   margin-bottom: 8px;
-
   font-size: 18px;
-
   border-bottom: 1px solid #444;
   padding-bottom: 5px;
-
   flex-shrink: 0;
+  /* Garante que o h2 nunca herde a cor azul do hover do painel pai */
+  color: #f0f0f0;
 }
 
 .painel:hover {
   border-color: #777;
-  transform: scale(1.03);
-  color: #064D9F;
+  transform: scale(1.01);
 }
 
 /* ==========================================================================
-   4. ROLADOR DE DADOS E BOTÕES
+   4. POSICIONAMENTO DOS PAINÉIS
    ========================================================================== */
+.iniciativa {
+  grid-column: 1;
+  grid-row: 1 / 3;
+  overflow-y: auto;
+}
+
 .rolador {
   grid-column: 2;
   grid-row: 1;
 }
 
+.anotacoes {
+  grid-column: 3;
+  grid-row: 1;
+  min-height: 0;
+}
+
+.turno {
+  grid-column: 4;
+  grid-row: 1;
+}
+
+.historico {
+  grid-column: 2;
+  grid-row: 2;
+  overflow-y: auto;
+}
+
+.status {
+  grid-column: 3;
+  grid-row: 2;
+  overflow-y: auto;
+}
+
+.monstros {
+  grid-column: 4;
+  grid-row: 2;
+  overflow-y: auto;
+}
+
+/* ==========================================================================
+   5. INICIATIVA
+   ========================================================================== */
+.btn-limpar-combate {
+  width: 100%;
+  padding: 6px;
+  margin-bottom: 10px;
+  background: #a04747;
+  color: #f0f0f0;
+  border: 1px solid #555;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.btn-limpar-combate:hover {
+  background: #af7d7d;
+}
+
+/* Item base */
+.item-iniciativa {
+  padding: 8px 10px;
+  border: 1px solid #3a3a3a;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  background: #1e1e1e;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+/* Turno ativo */
+.item-iniciativa--ativo {
+  border-color: #064D9F;
+  background: #1a2535;
+  box-shadow: 0 0 0 1px #064D9F;
+}
+
+/* Cabeçalho: nome + botão remover */
+.item-ini-cabecalho {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2px;
+}
+
+.item-iniciativa-nome {
+  font-weight: bold;
+  color: #fff;
+  font-size: 1.05em;
+}
+
+.item-iniciativa--ativo .item-iniciativa-nome {
+  color: #5aabff;
+}
+
+.btn-remover-ini {
+  background: none;
+  border: none;
+  color: #666;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 2px 4px;
+  line-height: 1;
+  transition: color 0.15s;
+}
+
+.btn-remover-ini:hover {
+  color: #ff6b6b;
+}
+
+.item-iniciativa-valor {
+  color: #28a745;
+  font-size: 0.8em;
+  font-weight: bold;
+  margin-bottom: 6px;
+  display: block;
+}
+
+/* Barra de HP */
+.barra-hp-wrap {
+  height: 5px;
+  background: #333;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.barra-hp-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.3s, background 0.3s;
+}
+
+/* Controles HP */
+.item-iniciativa-controles {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.label-hp {
+  color: #ccc;
+  font-size: 0.9em;
+  margin-right: 2px;
+}
+
+.btn-hp-step {
+  width: 24px;
+  height: 24px;
+  background: #333;
+  color: #fff;
+  border: 1px solid #555;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s;
+  flex-shrink: 0;
+}
+
+.btn-hp-step:hover {
+  background: #064D9F;
+}
+
+.input-vida {
+  width: 50px;
+  background: #2a2a2a;
+  color: white;
+  border: 1px solid #444;
+  text-align: center;
+  border-radius: 3px;
+  padding: 3px;
+  font-size: 14px;
+}
+
+.input-vida:focus {
+  outline: none;
+  border-color: #064D9F;
+}
+
+/* Condições */
+.item-ini-condicoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.tag-condicao {
+  background: #2a2a2a;
+  border: 1px solid #444;
+  border-radius: 4px;
+  padding: 2px 5px;
+  font-size: 14px;
+  cursor: pointer;
+  opacity: 0.35;
+  transition: opacity 0.15s, border-color 0.15s;
+  line-height: 1.4;
+}
+
+.tag-condicao:hover {
+  opacity: 0.7;
+}
+
+.tag-condicao--ativa {
+  opacity: 1;
+  border-color: #f39c12;
+  background: #2e2210;
+}
+
+/* ==========================================================================
+   5b. CONTROLE DE TURNO
+   ========================================================================== */
+.turno-controles {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.btn-turno {
+  flex: 1;
+  padding: 10px;
+  background: #2a2a2a;
+  color: #f0f0f0;
+  border: 1px solid #555;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: bold;
+  transition: background 0.2s;
+}
+
+.btn-turno:hover {
+  background: #444;
+}
+
+.btn-turno--proximo {
+  background: #064D9F;
+  border-color: #064D9F;
+}
+
+.btn-turno--proximo:hover {
+  background: #0a65cc;
+}
+
+.turno-dica {
+  font-size: 11px;
+  color: #555;
+  margin-top: 10px;
+  text-align: center;
+}
+
+/* ==========================================================================
+   6. ROLADOR DE DADOS
+   ========================================================================== */
 .botoes-dados {
   display: flex;
   flex-wrap: wrap;
-
   gap: 5px;
-
   justify-content: center;
-
   margin-top: 5px;
 }
 
 .botoes-dados button {
   width: 55px;
   height: 55px;
-
   padding: 5px;
-
   background: #3a3a3a;
   border: 1px solid #555;
   border-radius: 8px;
-
   cursor: pointer;
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   transition: all 0.2s ease;
 }
 
 .botoes-dados button img {
   width: 105%;
   height: auto;
-
   pointer-events: none;
-
-  transition: 0.2s;
+  transition: transform 0.2s, filter 0.2s;
 }
 
-/* hover e brilho */
 .botoes-dados button:hover {
   background: #064D9F;
-  color: #000;
 }
 
 .botoes-dados button:hover img {
@@ -159,7 +392,6 @@ body {
 
 #resultado-dado {
   margin-top: 5px;
-
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -168,39 +400,29 @@ body {
 #resultado-dado .valor {
   font-size: 32px;
   font-weight: bold;
-
   margin-top: 5px;
-
   transition: transform 0.1s;
 }
 
 /* ==========================================================================
-   5. CONTROLES DE INPUT (MODIFICADOR, ANOTAÇÕES)
+   7. CONTROLES DE INPUT
    ========================================================================== */
 .controle-modificador {
   display: flex;
-
   justify-content: center;
   align-items: center;
-
   gap: 8px;
-
   margin-top: 15px;
 }
 
 .controle-modificador input {
   width: 45px;
-
   padding: 6px;
-
   background: #1e1e1e;
   color: white;
-
   border: 1px solid #555;
   border-radius: 4px;
-
   text-align: center;
-
   font-size: 16px;
   font-weight: bold;
 }
@@ -210,78 +432,235 @@ body {
   border-color: #064D9F;
 }
 
-/* ANOTAÇÕES */
-.anotacoes {
-  grid-column: 3;
-  grid-row: 1;
-
-  min-height: 0;
-}
-
+/* ==========================================================================
+   8. ANOTAÇÕES
+   ========================================================================== */
 .anotacoes textarea {
   flex: 1;
-
   width: 100%;
   min-height: 0;
-
   background: #1e1e1e;
   color: #fff;
-
   border: 1px solid #555;
   border-radius: 5px;
-
   padding: 8px;
-
   resize: none;
-
   box-sizing: border-box;
+  font-family: Arial, sans-serif;
+  font-size: 14px;
+}
+
+.anotacoes textarea:focus {
+  outline: none;
+  border-color: #064D9F;
 }
 
 /* ==========================================================================
-   6. HISTÓRICO E LOGS
+   9. HISTÓRICO
    ========================================================================== */
-.historico {
-  grid-column: 2;
-  grid-row: 2;
+#log-historico {
   overflow-y: auto;
+  flex: 1;
 }
 
 .log-item {
   background: #1e1e1e;
-
   border-left: 3px solid #064D9F;
   border-radius: 4px;
-
   padding: 6px;
-
-  font-size: 14px;
-
+  font-size: 13px;
+  font-weight: bold;
+  color: #eee;
   margin-bottom: 6px;
 }
 
 .log-item.falha {
-  border-left: 3px solid #e63946;
+  border-left-color: #e63946;
   color: #ff6b6b;
 }
 
 .log-item.sucesso {
-  border-left: 3px solid #2ecc71;
+  border-left-color: #2ecc71;
   color: #6bffb0;
 }
 
 /* ==========================================================================
-   MODAL
+   10. STATUS DO GRUPO
+   ========================================================================== */
+.btn-novo-heroi {
+  width: 100%;
+  padding: 8px;
+  margin-bottom: 12px;
+  background: #064D9F;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 14px;
+  flex-shrink: 0;
+  transition: background 0.2s;
+}
+
+.btn-novo-heroi:hover {
+  background: #0a65cc;
+}
+
+.card-heroi {
+  background: #1e1e1e;
+  padding: 10px;
+  border-radius: 6px;
+  border-left: 4px solid #064D9F;
+  margin-bottom: 8px;
+  position: relative;
+}
+
+.card-heroi-topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2px;
+  padding-right: 18px;
+}
+
+.card-heroi-nome {
+  color: #fff;
+  font-size: 1.05em;
+  font-weight: bold;
+}
+
+.card-heroi-ini {
+  color: #28a745;
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.card-heroi-sub {
+  font-size: 11px;
+  color: #888;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.card-heroi-rodape {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.card-heroi-hp {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.card-heroi-hp label {
+  font-size: 12px;
+  color: #aaa;
+}
+
+.card-heroi-hp input {
+  width: 45px;
+  background: #2a2a2a;
+  color: #fff;
+  border: 1px solid #444;
+  text-align: center;
+  border-radius: 3px;
+  padding: 3px;
+  font-size: 13px;
+}
+
+.card-heroi-hp input:focus {
+  outline: none;
+  border-color: #064D9F;
+}
+
+.btn-remover-heroi {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background: none;
+  border: none;
+  color: #ff6b6b;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 12px;
+  padding: 2px 4px;
+  line-height: 1;
+}
+
+.btn-remover-heroi:hover {
+  color: #ff3333;
+}
+
+.btn-ini-heroi {
+  background: none;
+  border: 1px solid #28a745;
+  color: #28a745;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 10px;
+  padding: 3px 6px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.btn-ini-heroi:hover {
+  background: #28a745;
+  color: #fff;
+}
+
+/* ==========================================================================
+   11. COLETÂNEA DE MONSTROS
+   ========================================================================== */
+.item-monstro {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  border-bottom: 1px solid #333;
+}
+
+.item-monstro:last-child {
+  border-bottom: none;
+}
+
+.item-monstro-nome {
+  color: #eee;
+  font-size: 14px;
+}
+
+.item-monstro-hp {
+  color: #777;
+  font-size: 12px;
+}
+
+.btn-add-monstro {
+  padding: 6px 12px;
+  background: #064D9F;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 13px;
+  transition: background 0.2s;
+}
+
+.btn-add-monstro:hover {
+  background: #0a65cc;
+}
+
+/* ==========================================================================
+   12. MODAL
    ========================================================================== */
 .modal {
   position: fixed;
   inset: 0;
-
   background: rgba(0, 0, 0, 0.7);
-
   display: flex;
   align-items: center;
   justify-content: center;
-
   z-index: 999;
 }
 
@@ -292,52 +671,121 @@ body {
 .modal-conteudo {
   background: #1e1e1e;
   color: white;
-
   padding: 25px;
-
   border-radius: 12px;
-
   width: 90%;
   max-width: 500px;
-
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-
   position: relative;
 }
 
 .fechar-modal {
   position: absolute;
-
   top: 10px;
   right: 15px;
-
   font-size: 28px;
-
   cursor: pointer;
+  color: #aaa;
+  line-height: 1;
+}
+
+.fechar-modal:hover {
+  color: #fff;
+}
+
+/* Formulário do modal de herói */
+.form-heroi {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.form-heroi label {
+  font-size: 13px;
+  color: #aaa;
+  margin-bottom: 2px;
+}
+
+.form-heroi input {
+  padding: 8px 10px;
+  background: #2a2a2a;
+  color: #fff;
+  border: 1px solid #555;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+.form-heroi input:focus {
+  outline: none;
+  border-color: #064D9F;
+}
+
+.btn-confirmar {
+  margin-top: 8px;
+  padding: 10px;
+  background: #064D9F;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-confirmar:hover {
+  background: #0a65cc;
 }
 
 /* ==========================================================================
-   7. POSICIONAMENTO DOS PAINÉIS
+   13. MODAL DE INICIATIVA
    ========================================================================== */
-.iniciativa {
-  grid-column: 1;
-  grid-row: 1 / 3;
-  overflow-y: auto;
+.ini-rolar-area {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 4px 0;
 }
 
-.status {
-  grid-column: 3;
-  grid-row: 2;
-  overflow-y: auto;
+.btn-rolar-ini {
+  padding: 10px 16px;
+  background: #2a2a2a;
+  color: #fff;
+  border: 1px solid #064D9F;
+  border-radius: 4px;
+  font-size: 15px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+  white-space: nowrap;
 }
 
-.turno {
-  grid-column: 4;
-  grid-row: 1;
+.btn-rolar-ini:hover {
+  background: #064D9F;
 }
 
-.monstros {
-  grid-column: 4;
-  grid-row: 2;
-  overflow-y: auto;
+.ini-resultado-display {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.ini-dado-valor {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #fff;
+}
+
+.ini-dado-valor.critico {
+  color: #2ecc71;
+}
+
+.ini-dado-valor.falha {
+  color: #e63946;
+}
+
+.ini-formula {
+  font-size: 13px;
+  color: #888;
 }

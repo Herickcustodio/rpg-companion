@@ -1,22 +1,30 @@
 /* ==========================================================================
-   1. ESTADO GLOBAL (DADOS)
+   1. ESTADO GLOBAL
    ========================================================================== */
 let listaDeIniciativa = JSON.parse(localStorage.getItem("iniciativaRPG")) || [];
-
-// heróis são dinâmicos e salvos no navegador
-let partyHerois = JSON.parse(localStorage.getItem("partyHeroisRPG")) || [];
+let partyHerois       = JSON.parse(localStorage.getItem("partyHeroisRPG")) || [];
+let turnoAtivo        = parseInt(localStorage.getItem("turnoAtivoRPG"))    || 0;
 
 const coletaneaMonstros = [
-  { nome: "Goblin", vidaMax: 7 },
-  { nome: "Orc", vidaMax: 15 },
-  { nome: "Abissal", vidaMax: 50 },
-  { nome: "Grifo", vidaMax: 50 },
-  { nome: "Homunculo", vidaMax: 50 },
+  { nome: "Goblin",         vidaMax: 7  },
+  { nome: "Orc",            vidaMax: 15 },
+  { nome: "Abissal",        vidaMax: 50 },
+  { nome: "Grifo",          vidaMax: 50 },
+  { nome: "Homunculo",      vidaMax: 50 },
   { nome: "Dragão Filhote", vidaMax: 50 }
 ];
 
+const CONDICOES = [
+  { id: "inconsciente", emoji: "😴", label: "Inconsciente" },
+  { id: "paralisado",   emoji: "❄️", label: "Paralisado"   },
+  { id: "emChamas",     emoji: "🔥", label: "Em chamas"    },
+  { id: "morto",        emoji: "☠️", label: "Morto"        },
+  { id: "envenenado",   emoji: "🤢", label: "Envenenado"   },
+  { id: "amedrontado",  emoji: "😱", label: "Amedrontado"  },
+];
+
 /* ==========================================================================
-   2. PERSISTÊNCIA E SINCRONIZAÇÃO
+   2. PERSISTÊNCIA
    ========================================================================== */
 function salvarIniciativaNoCofre() {
   localStorage.setItem("iniciativaRPG", JSON.stringify(listaDeIniciativa));
@@ -27,281 +35,526 @@ function salvarHeroisNoCofre() {
 }
 
 function salvarESincronizar() {
-    salvarIniciativaNoCofre();
-    salvarHeroisNoCofre();
-    atualizarIniciativa();
-    renderizarStatusGrupo();
-}
-
-function adicionarNovoHeroi() {
-    const nome = prompt("Nome do Herói:");
-    if (!nome) return; // Cancela se não digitar o nome
-    
-    const classe = prompt("Classe do Herói (ex: Guerreiro, Mago):") || "Aventureiro";
-    const nivel = prompt("Nível do Herói:") || "1";
-    const hpMax = prompt("HP Máximo do Herói:") || "10";
-
-    const novoHeroi = {
-        id: 'h_' + Date.now(),
-        nome: nome,
-        classe: classe,
-        nivel: nivel,
-        hpMax: parseInt(hpMax) || 10,
-        imagem: "" // Propriedade já criada para quando você atualizar a interface!
-    };
-
-    partyHerois.push(novoHeroi);
-    salvarESincronizar();
-}
-
-function removerHeroi(idHeroi) {
-    if(confirm("Deseja realmente remover este herói da party?")) {
-        // Remove da lista de heróis
-        partyHerois = partyHerois.filter(h => h.id !== idHeroi);
-        // Remove da iniciativa também, caso ele esteja lá
-        listaDeIniciativa = listaDeIniciativa.filter(c => c.idHeroi !== idHeroi);
-        salvarESincronizar();
-    }
-}
-
-   function salvarIniciativaNoCofre() {
-  localStorage.setItem("iniciativaRPG", JSON.stringify(listaDeIniciativa));
-}
-
-function salvarESincronizar() {
-    salvarIniciativaNoCofre();
-    atualizarIniciativa();
-    renderizarStatusGrupo();
+  salvarIniciativaNoCofre();
+  salvarHeroisNoCofre();
+  localStorage.setItem("turnoAtivoRPG", turnoAtivo);
+  atualizarIniciativa();
+  renderizarStatusGrupo();
 }
 
 /* ==========================================================================
-   3. LÓGICA DE COMBATE
+   3. MODAL DE NOVO HERÓI
    ========================================================================== */
-
-function adicionarIniciativaDeMonstro(monstro) {
-  const valorIni = prompt(`Qual a iniciativa do ${monstro.nome}?`);
-  if (valorIni !== null) {
-    const quantidadeExistente = listaDeIniciativa.filter(c => c.nomeBase === monstro.nome).length;
-    const letra = String.fromCharCode(65 + quantidadeExistente);
-
-    listaDeIniciativa.push({
-      id: Date.now(),
-      nomeBase: monstro.nome,
-      nome: `${monstro.nome} ${letra}`,
-      valor: parseInt(valorIni) || 0,
-      hpAtual: monstro.vidaMax,
-      hpMax: monstro.vidaMax
-    });
-    salvarESincronizar();
-  }
+function abrirModalHeroi() {
+  document.getElementById("heroi-nome").value   = "";
+  document.getElementById("heroi-classe").value = "";
+  document.getElementById("heroi-nivel").value  = "1";
+  document.getElementById("heroi-hp").value     = "10";
+  document.getElementById("modal-heroi").classList.remove("oculto");
+  document.getElementById("heroi-nome").focus();
 }
 
+function fecharModalHeroi() {
+  document.getElementById("modal-heroi").classList.add("oculto");
+}
+
+function confirmarNovoHeroi() {
+  const nome = document.getElementById("heroi-nome").value.trim();
+  if (!nome) { document.getElementById("heroi-nome").focus(); return; }
+
+  partyHerois.push({
+    id:     "h_" + Date.now(),
+    nome:   nome,
+    classe: document.getElementById("heroi-classe").value.trim() || "Aventureiro",
+    nivel:  document.getElementById("heroi-nivel").value || "1",
+    hpMax:  parseInt(document.getElementById("heroi-hp").value) || 10,
+    imagem: ""
+  });
+
+  fecharModalHeroi();
+  salvarESincronizar();
+}
+
+/* ==========================================================================
+   4. LÓGICA DE COMBATE
+   ========================================================================== */
+function adicionarIniciativaDeMonstro(monstro) {
+  const valorIni = prompt(`Qual a iniciativa do ${monstro.nome}?`);
+  if (valorIni === null) return;
+
+  const quantidadeExistente = listaDeIniciativa.filter(c => c.nomeBase === monstro.nome).length;
+  const letra = String.fromCharCode(65 + quantidadeExistente);
+
+  listaDeIniciativa.push({
+    id:       Date.now(),
+    nomeBase: monstro.nome,
+    nome:     `${monstro.nome} ${letra}`,
+    valor:    parseInt(valorIni) || 0,
+    hpAtual:  monstro.vidaMax,
+    hpMax:    monstro.vidaMax,
+    condicoes: []
+  });
+
+  salvarESincronizar();
+}
+
+let _idHeroiIniciativaAtual = null;
+
 function lancarIniciativaHeroi(idHeroi) {
-    const heroiBase = partyHerois.find(h => h.id === idHeroi);
-    const valor = prompt(`Digite a iniciativa para ${heroiBase.nome}:`);
-    
-    if (valor !== null) {
-        listaDeIniciativa = listaDeIniciativa.filter(c => c.idHeroi !== idHeroi);
-        listaDeIniciativa.push({
-            id: Date.now(),
-            idHeroi: idHeroi,
-            nome: heroiBase.nome,
-            valor: parseInt(valor) || 0,
-            hpAtual: heroiBase.hpMax,
-            hpMax: heroiBase.hpMax
-        });
-        salvarESincronizar();
-    }
+  const heroiBase = partyHerois.find(h => h.id === idHeroi);
+  if (!heroiBase) return;
+
+  _idHeroiIniciativaAtual = idHeroi;
+  document.getElementById("modal-iniciativa-titulo").textContent = `Iniciativa — ${heroiBase.nome}`;
+  document.getElementById("ini-modificador").value = "0";
+  document.getElementById("ini-valor-manual").value = "";
+  document.getElementById("ini-resultado-display").classList.add("oculto");
+
+  const valorDisplay = document.getElementById("ini-dado-valor");
+  valorDisplay.textContent = "—";
+  valorDisplay.className = "ini-dado-valor";
+
+  document.getElementById("modal-iniciativa").classList.remove("oculto");
+  document.getElementById("ini-modificador").focus();
+}
+
+function fecharModalIniciativa() {
+  document.getElementById("modal-iniciativa").classList.add("oculto");
+  _idHeroiIniciativaAtual = null;
+}
+
+function rolarIniciativaModal() {
+  const modificador    = parseInt(document.getElementById("ini-modificador").value) || 0;
+  const dado           = Math.floor(Math.random() * 20) + 1;
+  const total          = dado + modificador;
+  const valorDisplay   = document.getElementById("ini-dado-valor");
+  const formulaDisplay = document.getElementById("ini-formula");
+
+  valorDisplay.textContent = total;
+  valorDisplay.className   = "ini-dado-valor";
+  if (dado === 20) valorDisplay.classList.add("critico");
+  if (dado === 1)  valorDisplay.classList.add("falha");
+
+  const sinal = modificador >= 0 ? "+" : "";
+  formulaDisplay.textContent = `(d20: ${dado} ${sinal}${modificador})`;
+  document.getElementById("ini-resultado-display").classList.remove("oculto");
+  document.getElementById("ini-valor-manual").value = total;
+}
+
+function confirmarIniciativaModal() {
+  const valor = parseInt(document.getElementById("ini-valor-manual").value);
+  if (isNaN(valor)) { document.getElementById("ini-valor-manual").focus(); return; }
+
+  const idHeroi   = _idHeroiIniciativaAtual;
+  const heroiBase = partyHerois.find(h => h.id === idHeroi);
+  if (!heroiBase) return;
+
+  // Preserva condições caso o herói já estivesse na lista
+  const entradaAnterior = listaDeIniciativa.find(c => c.idHeroi === idHeroi);
+  const condicoes = entradaAnterior ? entradaAnterior.condicoes : [];
+
+  listaDeIniciativa = listaDeIniciativa.filter(c => c.idHeroi !== idHeroi);
+  listaDeIniciativa.push({
+    id:       Date.now(),
+    idHeroi:  idHeroi,
+    nome:     heroiBase.nome,
+    valor:    valor,
+    hpAtual:  heroiBase.hpMax,
+    hpMax:    heroiBase.hpMax,
+    condicoes
+  });
+
+  fecharModalIniciativa();
+  salvarESincronizar();
+}
+
+function removerHeroi(idHeroi) {
+  if (!confirm("Deseja realmente remover este herói da party?")) return;
+  partyHerois       = partyHerois.filter(h => h.id !== idHeroi);
+  listaDeIniciativa = listaDeIniciativa.filter(c => c.idHeroi !== idHeroi);
+  salvarESincronizar();
+}
+
+/** Remove um combatente individual da iniciativa (ex.: monstro morto) */
+function removerDaIniciativa(id) {
+  const idx = listaDeIniciativa.findIndex(c => c.id === id);
+  if (idx === -1) return;
+  listaDeIniciativa.splice(idx, 1);
+  // Se o turno ativo estava depois do removido, recua um passo
+  if (turnoAtivo >= listaDeIniciativa.length) turnoAtivo = 0;
+  salvarESincronizar();
 }
 
 function sincronizarHP(id, novoValor) {
   const criatura = listaDeIniciativa.find(c => c.id === id);
-  if (criatura) {
-    criatura.hpAtual = parseInt(novoValor) || 0;
-    salvarESincronizar();
-  }
+  if (!criatura) return;
+  criatura.hpAtual = parseInt(novoValor) || 0;
+  salvarESincronizar();
 }
 
 function sincronizarVidaTudo(idHeroi, novoValor) {
-    const itemIni = listaDeIniciativa.find(c => c.idHeroi === idHeroi);
-    if (itemIni) {
-        itemIni.hpAtual = parseInt(novoValor) || 0;
-        salvarESincronizar();
-    }
+  const itemIni = listaDeIniciativa.find(c => c.idHeroi === idHeroi);
+  if (itemIni) itemIni.hpAtual = parseInt(novoValor) || 0;
+  salvarESincronizar();
+}
+
+/** Alterna uma condição em um combatente */
+function toggleCondicao(id, condicaoId) {
+  const criatura = listaDeIniciativa.find(c => c.id === id);
+  if (!criatura) return;
+  if (!criatura.condicoes) criatura.condicoes = [];
+
+  const idx = criatura.condicoes.indexOf(condicaoId);
+  if (idx === -1) criatura.condicoes.push(condicaoId);
+  else            criatura.condicoes.splice(idx, 1);
+
+  salvarESincronizar();
 }
 
 /* ==========================================================================
-   4. RENDERIZAÇÃO DE INTERFACE (UI)
+   5. CONTROLE DE TURNO
    ========================================================================== */
+function proximoTurno() {
+  if (listaDeIniciativa.length === 0) return;
+  turnoAtivo = (turnoAtivo + 1) % listaDeIniciativa.length;
+  salvarESincronizar();
+}
+
+function turnoAnterior() {
+  if (listaDeIniciativa.length === 0) return;
+  turnoAtivo = (turnoAtivo - 1 + listaDeIniciativa.length) % listaDeIniciativa.length;
+  salvarESincronizar();
+}
+
+/* ==========================================================================
+   6. RENDERIZAÇÃO — INICIATIVA
+   ========================================================================== */
+function calcularCorHP(hpAtual, hpMax) {
+  if (hpMax <= 0) return "#888";
+  const pct = hpAtual / hpMax;
+  if (pct > 0.5) return "#2ecc71";  // verde
+  if (pct > 0.25) return "#f39c12"; // amarelo
+  return "#e63946";                  // vermelho
+}
 
 function atualizarIniciativa() {
   listaDeIniciativa.sort((a, b) => b.valor - a.valor);
   const container = document.getElementById("lista-iniciativa-conteudo");
-  if (!container) return; 
-
+  if (!container) return;
   container.innerHTML = "";
-  listaDeIniciativa.forEach(personagem => {
+
+  // Garante que turnoAtivo não aponte para fora dos limites
+  if (listaDeIniciativa.length > 0 && turnoAtivo >= listaDeIniciativa.length) turnoAtivo = 0;
+
+  listaDeIniciativa.forEach((personagem, index) => {
+    const ativo      = index === turnoAtivo && listaDeIniciativa.length > 0;
+    const condicoes  = personagem.condicoes || [];
+    const pctHP      = personagem.hpMax > 0 ? (personagem.hpAtual / personagem.hpMax) * 100 : 0;
+    const corHP      = calcularCorHP(personagem.hpAtual, personagem.hpMax);
+
     const item = document.createElement("div");
-    item.className = "item-iniciativa";
-    item.style = "display: flex; justify-content: space-between; align-items: center; padding: 12px; border-bottom: 1px solid #444; border-radius: 4px; margin-bottom: 8px; background: #2a2a2a;";
-    
-    item.innerHTML = `
-      <div style="flex-grow: 1; display: flex; flex-direction: column;">
-        <span style="font-weight: bold; color: #fff; font-size: 1.1em;">${personagem.nome}</span> 
-        <span style="color: #28a745; font-size: 0.85em; font-weight: bold; margin-top: 4px;">Iniciativa: ${personagem.valor}</span>
-      </div>
-      <div class="controles-vida">
-        <span style="color: #ccc; margin-right: 5px; font-size: 0.9em;">HP:</span>
-        <input type="number" value="${personagem.hpAtual}" class="input-vida" 
-               oninput="${personagem.idHeroi ? `sincronizarVidaTudo('${personagem.idHeroi}', this.value)` : `sincronizarHP(${personagem.id}, this.value)`}"
-               style="width: 60px; background: #1e1e1e; color: white; border: 1px solid #444; text-align: center; border-radius: 3px; padding: 4px;">
-      </div>
-    `;
+    item.className = "item-iniciativa" + (ativo ? " item-iniciativa--ativo" : "");
+
+    // ── Cabeçalho: nome + botão remover
+    const cabecalho = document.createElement("div");
+    cabecalho.className = "item-ini-cabecalho";
+
+    const nome = document.createElement("span");
+    nome.className = "item-iniciativa-nome";
+    nome.textContent = (ativo ? "▶ " : "") + personagem.nome;
+
+    const btnRemover = document.createElement("button");
+    btnRemover.textContent = "✕";
+    btnRemover.className   = "btn-remover-ini";
+    btnRemover.title       = "Remover da iniciativa";
+    btnRemover.addEventListener("click", () => removerDaIniciativa(personagem.id));
+
+    cabecalho.appendChild(nome);
+    cabecalho.appendChild(btnRemover);
+
+    // ── Iniciativa
+    const iniciativaSpan = document.createElement("span");
+    iniciativaSpan.className   = "item-iniciativa-valor";
+    iniciativaSpan.textContent = `Iniciativa: ${personagem.valor}`;
+
+    // ── Barra de HP
+    const barraWrap = document.createElement("div");
+    barraWrap.className = "barra-hp-wrap";
+
+    const barraFill = document.createElement("div");
+    barraFill.className = "barra-hp-fill";
+    barraFill.style.width      = `${Math.max(0, Math.min(100, pctHP))}%`;
+    barraFill.style.background = corHP;
+    barraWrap.appendChild(barraFill);
+
+    // ── Controles HP (− input +)
+    const controles = document.createElement("div");
+    controles.className = "item-iniciativa-controles";
+
+    const labelHP = document.createElement("span");
+    labelHP.className   = "label-hp";
+    labelHP.textContent = "HP:";
+
+    const btnMenos = document.createElement("button");
+    btnMenos.textContent = "−";
+    btnMenos.className   = "btn-hp-step";
+    btnMenos.addEventListener("click", () => {
+      inputHP.value = (parseInt(inputHP.value) || 0) - 1;
+      dispararSincHP();
+    });
+
+    const inputHP = document.createElement("input");
+    inputHP.type      = "number";
+    inputHP.value     = personagem.hpAtual;
+    inputHP.className = "input-vida";
+
+    const dispararSincHP = () => {
+      if (personagem.idHeroi) sincronizarVidaTudo(personagem.idHeroi, inputHP.value);
+      else                    sincronizarHP(personagem.id, inputHP.value);
+    };
+    inputHP.addEventListener("input", dispararSincHP);
+
+    const btnMais = document.createElement("button");
+    btnMais.textContent = "+";
+    btnMais.className   = "btn-hp-step";
+    btnMais.addEventListener("click", () => {
+      inputHP.value = (parseInt(inputHP.value) || 0) + 1;
+      dispararSincHP();
+    });
+
+    controles.appendChild(labelHP);
+    controles.appendChild(btnMenos);
+    controles.appendChild(inputHP);
+    controles.appendChild(btnMais);
+
+    // ── Condições
+    const divCondicoes = document.createElement("div");
+    divCondicoes.className = "item-ini-condicoes";
+
+    CONDICOES.forEach(cond => {
+      const ativa = condicoes.includes(cond.id);
+      const tag   = document.createElement("button");
+      tag.className = "tag-condicao" + (ativa ? " tag-condicao--ativa" : "");
+      tag.title     = cond.label;
+      tag.textContent = cond.emoji;
+      tag.addEventListener("click", () => toggleCondicao(personagem.id, cond.id));
+      divCondicoes.appendChild(tag);
+    });
+
+    // ── Monta item
+    item.appendChild(cabecalho);
+    item.appendChild(iniciativaSpan);
+    item.appendChild(barraWrap);
+    item.appendChild(controles);
+    item.appendChild(divCondicoes);
     container.appendChild(item);
   });
 }
 
+/* ==========================================================================
+   7. RENDERIZAÇÃO — STATUS DO GRUPO
+   ========================================================================== */
 function renderizarStatusGrupo() {
-    const container = document.getElementById('conteudo-status-grupo');
-    if (!container) return;
-    container.innerHTML = ""; 
+  const container = document.getElementById("conteudo-status-grupo");
+  if (!container) return;
+  container.innerHTML = "";
 
-    // Botão dinâmico para adicionar heróis direto pelo JS
-    const btnAdd = document.createElement("button");
-    btnAdd.textContent = "+ Criar Novo Herói";
-    btnAdd.style = "width: 100%; padding: 8px; margin-bottom: 15px; background: #064D9F; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;";
-    btnAdd.onclick = adicionarNovoHeroi;
-    container.appendChild(btnAdd);
-    
-    partyHerois.forEach(heroi => {
-        const naIni = listaDeIniciativa.find(c => c.idHeroi === heroi.id);
-        const hpAtual = naIni ? naIni.hpAtual : heroi.hpMax;
-        const valorIni = naIni ? naIni.valor : "-";
+  const btnAdd = document.createElement("button");
+  btnAdd.textContent = "+ Criar Novo Herói";
+  btnAdd.className   = "btn-novo-heroi";
+  btnAdd.addEventListener("click", abrirModalHeroi);
+  container.appendChild(btnAdd);
 
-        const card = document.createElement("div");
-        card.style = "background: #1e1e1e; padding: 10px; border-radius: 6px; border-left: 4px solid #064D9F; margin-bottom: 8px; position: relative;";
-        
-        card.innerHTML = `
-            <button onclick="removerHeroi('${heroi.id}')" title="Remover Herói" style="position: absolute; top: 5px; right: 5px; background: none; border: none; color: #ff6b6b; cursor: pointer; font-weight: bold; font-size: 12px;">X</button>
-            
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px; padding-right: 15px;">
-                <strong style="color: #fff; font-size: 1.1em;">${heroi.nome}</strong>
-                <span style="color: #28a745; font-weight: bold; font-size: 14px;">Ini: ${valorIni}</span>
-            </div>
-            
-            <div style="font-size: 11px; color: #888; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.5px;">
-                Nvl ${heroi.nivel} | ${heroi.classe}
-            </div>
+  partyHerois.forEach(heroi => {
+    const naIni    = listaDeIniciativa.find(c => c.idHeroi === heroi.id);
+    const hpAtual  = naIni ? naIni.hpAtual : heroi.hpMax;
+    const valorIni = naIni ? naIni.valor    : "-";
 
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <div style="display: flex; align-items: center; gap: 5px;">
-                    <span style="font-size: 12px; color: #aaa;">HP:</span>
-                    <input type="number" value="${hpAtual}" oninput="sincronizarVidaTudo('${heroi.id}', this.value)"
-                        style="width: 45px; background: #2a2a2a; color: #fff; border: 1px solid #444; text-align: center; border-radius: 3px;">
-                </div>
-                <button onclick="lancarIniciativaHeroi('${heroi.id}')" style="background: none; border: 1px solid #28a745; color: #28a745; border-radius: 4px; cursor: pointer; font-size: 10px; padding: 2px 5px;">
-                    ${naIni ? 'Atualizar Ini' : '+ Iniciativa'}
-                </button>
-            </div>
-        `;
-        container.appendChild(card);
-    });
+    const card = document.createElement("div");
+    card.className = "card-heroi";
+
+    const btnRemover = document.createElement("button");
+    btnRemover.textContent = "✕";
+    btnRemover.className   = "btn-remover-heroi";
+    btnRemover.title       = "Remover herói";
+    btnRemover.addEventListener("click", () => removerHeroi(heroi.id));
+
+    const topo = document.createElement("div");
+    topo.className = "card-heroi-topo";
+    topo.innerHTML = `
+      <span class="card-heroi-nome">${heroi.nome}</span>
+      <span class="card-heroi-ini">Ini: ${valorIni}</span>
+    `;
+
+    const sub = document.createElement("div");
+    sub.className   = "card-heroi-sub";
+    sub.textContent = `Nvl ${heroi.nivel} | ${heroi.classe}`;
+
+    const rodape = document.createElement("div");
+    rodape.className = "card-heroi-rodape";
+
+    const divHP  = document.createElement("div");
+    divHP.className = "card-heroi-hp";
+
+    const labelHP = document.createElement("label");
+    labelHP.textContent = "HP:";
+
+    const inputHP = document.createElement("input");
+    inputHP.type  = "number";
+    inputHP.value = hpAtual;
+    inputHP.addEventListener("input", () => sincronizarVidaTudo(heroi.id, inputHP.value));
+
+    divHP.appendChild(labelHP);
+    divHP.appendChild(inputHP);
+
+    const btnIni = document.createElement("button");
+    btnIni.textContent = naIni ? "Atualizar Ini" : "+ Iniciativa";
+    btnIni.className   = "btn-ini-heroi";
+    btnIni.addEventListener("click", () => lancarIniciativaHeroi(heroi.id));
+
+    rodape.appendChild(divHP);
+    rodape.appendChild(btnIni);
+
+    card.appendChild(btnRemover);
+    card.appendChild(topo);
+    card.appendChild(sub);
+    card.appendChild(rodape);
+    container.appendChild(card);
+  });
 }
 
 /* ==========================================================================
-   5. DADOS, HISTÓRICO E INICIALIZAÇÃO
+   8. RENDERIZAÇÃO — COLETÂNEA DE MONSTROS
+   ========================================================================== */
+function renderizarColetanea() {
+  const container = document.getElementById("conteudo-monstros");
+  if (!container) return;
+  container.innerHTML = "";
+
+  coletaneaMonstros.forEach(monstro => {
+    const item = document.createElement("div");
+    item.className = "item-monstro";
+
+    const infoNome = document.createElement("span");
+    infoNome.className = "item-monstro-nome";
+    infoNome.innerHTML = `${monstro.nome} <small class="item-monstro-hp">(HP: ${monstro.vidaMax})</small>`;
+
+    const btnAdd = document.createElement("button");
+    btnAdd.textContent = "+ Adicionar";
+    btnAdd.className   = "btn-add-monstro";
+    btnAdd.addEventListener("click", () => adicionarIniciativaDeMonstro(monstro));
+
+    item.appendChild(infoNome);
+    item.appendChild(btnAdd);
+    container.appendChild(item);
+  });
+}
+
+/* ==========================================================================
+   9. DADOS E HISTÓRICO
    ========================================================================== */
 function limparIniciativa() {
-  if (confirm("Deseja realmente limpar toda a iniciativa?")) {
-    // 1. Esvazia a lista de combate
-    listaDeIniciativa = [];
-    
-    // 2. Salva e sincroniza tudo
-    // Isso vai atualizar a lista da esquerda E o painel de status do grupo
-    salvarESincronizar();
-  }
+  if (!confirm("Deseja realmente limpar toda a iniciativa?")) return;
+  listaDeIniciativa = [];
+  turnoAtivo        = 0;
+  salvarESincronizar();
 }
 
 function rolarDado(lados) {
   const modificador = parseInt(document.getElementById("modificador").value) || 0;
-  const quantidade = parseInt(document.getElementById("quantidade").value) || 1;
+  const quantidade  = parseInt(document.getElementById("quantidade").value)  || 1;
   let somaDados = 0;
-  let rolagens = [];
+  const rolagens = [];
 
   for (let i = 0; i < quantidade; i++) {
-    let rolagem = Math.floor(Math.random() * lados) + 1;
+    const rolagem = Math.floor(Math.random() * lados) + 1;
     somaDados += rolagem;
     rolagens.push(rolagem);
   }
 
-  const total = somaDados + modificador;
+  const total     = somaDados + modificador;
+  const textoBase = `Rolou ${quantidade}d${lados}: [${rolagens.join(", ")}] + ${modificador} = ${total}`;
   document.querySelector("#resultado-dado .valor").textContent = total;
-  adicionarHistorico(`Rolou ${quantidade}d${lados}: [${rolagens.join(", ")}] + ${modificador} = ${total}`);
+
+  if (lados === 20 && quantidade === 1) {
+    if (rolagens[0] === 20) adicionarHistorico(`⚔️ SUCESSO CRÍTICO! ${textoBase}`, "sucesso");
+    else if (rolagens[0] === 1) adicionarHistorico(`💀 FALHA CRÍTICA! ${textoBase}`, "falha");
+    else adicionarHistorico(textoBase);
+  } else {
+    adicionarHistorico(textoBase);
+  }
 }
 
-function adicionarHistorico(texto) {
+function adicionarHistorico(texto, tipo = "") {
+  const historico = JSON.parse(localStorage.getItem("historicoRPG")) || [];
+  historico.push({ texto, tipo });
+  localStorage.setItem("historicoRPG", JSON.stringify(historico));
+  renderizarItemHistorico(texto, tipo);
+}
+
+function renderizarItemHistorico(texto, tipo) {
   const log = document.getElementById("log-historico");
-  const item = document.createElement("div");
-  item.style = "padding: 4px 0; border-bottom: 1px solid #333; font-size: 13px; font-weight: bold; color: #eee;";
+  if (!log) return;
+  const item       = document.createElement("div");
+  item.className   = "log-item" + (tipo ? ` ${tipo}` : "");
   item.textContent = texto;
   log.appendChild(item);
   log.scrollTop = log.scrollHeight;
 }
 
-function renderizarColetanea() {
-  const painelMonstros = document.querySelector(".monstros");
-  painelMonstros.innerHTML = "<h2>Coletânea de Monstros</h2>";
-  coletaneaMonstros.forEach(monstro => {
-    const item = document.createElement("div");
-    item.style = "display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #333;";
-    item.innerHTML = `
-      <span style="color: #eee;">${monstro.nome} <small style="color: #777;">(HP: ${monstro.vidaMax})</small></span>
-      <button onclick='adicionarIniciativaDeMonstro(${JSON.stringify(monstro)})' class="btn-add" style="cursor: pointer; padding: 6px 12px; background: #064D9F; color: white; border: none; border-radius: 4px; font-weight: bold;">+ Adicionar</button>
-    `;
-    painelMonstros.appendChild(item);
-  });
+function limparHistorico() {
+  if (!confirm("Deseja realmente limpar o histórico da sessão?")) return;
+  localStorage.removeItem("historicoRPG");
+  document.getElementById("log-historico").innerHTML = "";
 }
 
 /* ==========================================================================
-   6. MODAIS E INTERAÇÕES DIVERSAS
+   10. MODAIS
    ========================================================================== */
-
-// ===== MODAL SOBRE =====
-
 function configurarModal(btnId, modalId, fecharId) {
-    const botao = document.getElementById(btnId);
-    const modal = document.getElementById(modalId);
-    const fechar = document.getElementById(fecharId);
-
-    botao.addEventListener("click", () => {
-        modal.classList.remove("oculto");
-    });
-
-    fechar.addEventListener("click", () => {
-        modal.classList.add("oculto");
-    });
-
-    window.addEventListener("click", (e) => {
-        if (e.target === modal) {
-            modal.classList.add("oculto");
-        }
-    });
+  const botao = document.getElementById(btnId);
+  const modal = document.getElementById(modalId);
+  const fechar = document.getElementById(fecharId);
+  botao.addEventListener("click",  () => modal.classList.remove("oculto"));
+  fechar.addEventListener("click", () => modal.classList.add("oculto"));
+  window.addEventListener("click", (e) => { if (e.target === modal) modal.classList.add("oculto"); });
 }
 
-configurarModal("btn-sobre", "modal-sobre", "fechar-sobre");
+configurarModal("btn-sobre",  "modal-sobre",  "fechar-sobre");
 configurarModal("btn-config", "modal-config", "fechar-config");
-configurarModal("btn-ajuda", "modal-ajuda", "fechar-ajuda");
+configurarModal("btn-ajuda",  "modal-ajuda",  "fechar-ajuda");
 
-// Inicialização
+// Modal de iniciativa
+document.getElementById("fechar-iniciativa").addEventListener("click", fecharModalIniciativa);
+document.getElementById("btn-rolar-ini").addEventListener("click", rolarIniciativaModal);
+document.getElementById("btn-confirmar-ini").addEventListener("click", confirmarIniciativaModal);
+window.addEventListener("click", (e) => { if (e.target === document.getElementById("modal-iniciativa")) fecharModalIniciativa(); });
+document.getElementById("modal-iniciativa").addEventListener("keydown", (e) => { if (e.key === "Enter") confirmarIniciativaModal(); });
+
+// Modal de herói
+document.getElementById("fechar-heroi").addEventListener("click", fecharModalHeroi);
+document.getElementById("btn-confirmar-heroi").addEventListener("click", confirmarNovoHeroi);
+window.addEventListener("click", (e) => { if (e.target === document.getElementById("modal-heroi")) fecharModalHeroi(); });
+document.getElementById("modal-heroi").addEventListener("keydown", (e) => { if (e.key === "Enter") confirmarNovoHeroi(); });
+
+/* ==========================================================================
+   11. INICIALIZAÇÃO
+   ========================================================================== */
 window.onload = () => {
-    renderizarColetanea();
-    atualizarIniciativa();
-    renderizarStatusGrupo();
-    
-    const areaAnotacoes = document.getElementById("campo-anotacoes");
-    if(areaAnotacoes) {
-        areaAnotacoes.value = localStorage.getItem("anotacoesRPG") || "";
-        areaAnotacoes.addEventListener("input", () => localStorage.setItem("anotacoesRPG", areaAnotacoes.value));
-    }
-};
+  renderizarColetanea();
+  atualizarIniciativa();
+  renderizarStatusGrupo();
 
+  const historicoSalvo = JSON.parse(localStorage.getItem("historicoRPG")) || [];
+  historicoSalvo.forEach(e => renderizarItemHistorico(e.texto, e.tipo));
+
+  const areaAnotacoes = document.getElementById("campo-anotacoes");
+  if (areaAnotacoes) {
+    areaAnotacoes.value = localStorage.getItem("anotacoesRPG") || "";
+    areaAnotacoes.addEventListener("input", () => localStorage.setItem("anotacoesRPG", areaAnotacoes.value));
+  }
+
+  // Botões de controle de turno (painel turno)
+  document.getElementById("btn-turno-anterior").addEventListener("click", turnoAnterior);
+  document.getElementById("btn-proximo-turno").addEventListener("click", proximoTurno);
+};
