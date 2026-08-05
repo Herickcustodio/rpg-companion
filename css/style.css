@@ -154,9 +154,9 @@ body {
    ========================================================================== */
 .btn-limpar-combate {
   padding: 4px 10px;
-  background: #721f1f;
+  background: #8b1a1a;
   color: #f0f0f0;
-  border: 1px solid #555;
+  border: 1px solid #c0392b;
   border-radius: 4px;
   cursor: pointer;
   font-size: 12px;
@@ -165,7 +165,7 @@ body {
 }
 
 .btn-limpar-combate:hover {
-  background: #c27575;
+  background: #c0392b;
 }
 
 /* Item base */
@@ -522,25 +522,28 @@ body {
 
 .card-heroi {
   background: #1e1e1e;
-  padding: 10px;
+  padding: 8px 10px;
   border-radius: 6px;
   border-left: 4px solid #064D9F;
   margin-bottom: 8px;
-  position: relative;
 }
 
 .card-heroi-topo {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2px;
-  padding-right: 18px;
+  gap: 6px;
+  margin-bottom: 1px;
 }
 
 .card-heroi-nome {
   color: #fff;
   font-size: 1.05em;
   font-weight: bold;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .card-heroi-ini {
@@ -552,9 +555,14 @@ body {
 .card-heroi-sub {
   font-size: 11px;
   color: #888;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+}
+
+/* Barra de HP — reutiliza as mesmas classes da iniciativa */
+.card-heroi .barra-hp-wrap {
+  margin-bottom: 6px;
 }
 
 .card-heroi-rodape {
@@ -566,12 +574,13 @@ body {
 .card-heroi-hp {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
 }
 
 .card-heroi-hp label {
   font-size: 12px;
   color: #aaa;
+  margin-right: 2px;
 }
 
 .card-heroi-hp input {
@@ -591,21 +600,19 @@ body {
 }
 
 .btn-remover-heroi {
-  position: absolute;
-  top: 5px;
-  right: 5px;
   background: none;
   border: none;
-  color: #ff6b6b;
+  color: #555;
   cursor: pointer;
-  font-weight: bold;
   font-size: 12px;
   padding: 2px 4px;
   line-height: 1;
+  flex-shrink: 0;
+  transition: color 0.15s;
 }
 
 .btn-remover-heroi:hover {
-  color: #ff3333;
+  color: #ff6b6b;
 }
 
 .btn-ini-heroi {

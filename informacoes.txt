@@ -1,2 +1,65 @@
 Onde peguei os ícones:
 https://game-icons.net/
+
+
+
+===========
+=======================
+
+Falta implementar:
+
+- Adicionar um botão de morto no card do personagens no painel de combate.
+- Ajustar os cards de monstros pra ficar mais bonito.
+- Criar a opção de criar um monstro se preferir.
+- Ter uma barrinha de pesquisa no painel de monstros.
+- Decidir o que fazer com o controle de turno (reduzir e aumentar alguma outra ou acoplar ela no painel de combate).
+- Condições quando forem aplicadas e retiradas, aparecer no histórico.
+- Aparecer no histórico adição de monstros e heróis.
+
+===================
+====================================
+
+Anotações para tela de ajuda:
+
+
+**Agarrado (Grappled):**
+Deslocamento vira 0; o efeito acaba se quem agarrou ficar incapacitado ou houver fuga mecânica.
+
+**Amedrontado (Frightened):**
+Desvantagem em ataques e testes enquanto a fonte do medo estiver visível; não pode se aproximar dela.
+
+**Atordoado (Stunned):**
+Incapacitado, não pode se mover, fala balbuciante e ataques contra ele têm vantagem.
+
+**Caído (Prone):**
+Movimento apenas rastejando (gasta metade do deslocamento para levantar); ataques próprios com desvantagem, e ataques contra si têm vantagem corpo a corpo, mas desvantagem à distância.
+
+**Cego (Blinded):**
+Falha automática em testes que dependem de visão; ataques próprios com desvantagem e ataques contra si com vantagem.
+
+**Enfeitiçado (Charmed):**
+Não pode atacar o encantador nem alvejá-lo com habilidades nocivas; o encantador tem vantagem em interações sociais.
+
+**Envenenado (Poisoned):**
+Desvantagem em jogadas de ataque e testes de habilidade.
+
+**Impedido (Restrained):**
+Deslocamento vira 0, ataques contra si têm vantagem, próprios ataques têm desvantagem e desvantagem em testes de Destreza.
+
+**Incapacitado (Incapacitated):**
+Não pode realizar ações, ações bônus ou reações.
+
+**Invisível (Invisible):**
+Impossível de ver sem sentidos especiais; ataques próprios têm vantagem, ataques contra si têm desvantagem.
+
+**Paralisado (Paralyzed):**
+Incapacitado, não se move nem fala, falha automática em salvaguardas de Força/Destreza, ataques contra si têm vantagem e qualquer ataque que acerte é um acerto crítico se o atacante estiver adjacente.
+
+**Petrificado (Petrified):**
+Transformado em peso morto de pedra; criatura fica incapacitada, peso é multiplicado por dez e resiste a todo dano.
+
+**Surdo (Deafened):**
+Não pode ouvir; falha automática em testes baseados em audição.
+
+**Exaustão (Exhaustion):**
+Condição cumulativa com níveis de severidade crescentes que afetam testes, velocidade e levam à morte no nível máximo.
