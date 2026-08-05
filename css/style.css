@@ -81,8 +81,24 @@ body {
   border-bottom: 1px solid #444;
   padding-bottom: 5px;
   flex-shrink: 0;
-  /* Garante que o h2 nunca herde a cor azul do hover do painel pai */
   color: #f0f0f0;
+}
+
+/* Cabeçalho com título + botão na mesma linha */
+.painel-cabecalho {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #444;
+  padding-bottom: 5px;
+  margin-bottom: 8px;
+  flex-shrink: 0;
+}
+
+.painel-cabecalho h2 {
+  margin: 0;
+  border-bottom: none;
+  padding-bottom: 0;
 }
 
 .painel:hover {
@@ -137,21 +153,19 @@ body {
    5. INICIATIVA
    ========================================================================== */
 .btn-limpar-combate {
-  width: 100%;
-  padding: 6px;
-  margin-bottom: 10px;
-  background: #a04747;
+  padding: 4px 10px;
+  background: #721f1f;
   color: #f0f0f0;
   border: 1px solid #555;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 12px;
   transition: background 0.2s;
   flex-shrink: 0;
 }
 
 .btn-limpar-combate:hover {
-  background: #af7d7d;
+  background: #c27575;
 }
 
 /* Item base */
