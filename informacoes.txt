@@ -8,7 +8,6 @@ https://game-icons.net/
 
 Falta implementar:
 
-- Adicionar um botão de morto no card do personagens no painel de combate.
 - Ajustar os cards de monstros pra ficar mais bonito.
 - Criar a opção de criar um monstro se preferir.
 - Ter uma barrinha de pesquisa no painel de monstros.

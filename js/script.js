@@ -4,6 +4,7 @@
 let listaDeIniciativa = JSON.parse(localStorage.getItem("iniciativaRPG")) || [];
 let partyHerois       = JSON.parse(localStorage.getItem("partyHeroisRPG")) || [];
 let turnoAtivo        = parseInt(localStorage.getItem("turnoAtivoRPG"))    || 0;
+let monstrosCustom    = JSON.parse(localStorage.getItem("monstrosCustomRPG")) || [];
 
 // coletaneaMonstros é carregada pelo monstros.js
 
@@ -77,8 +78,50 @@ function confirmarNovoHeroi() {
 }
 
 /* ==========================================================================
-   4. LÓGICA DE COMBATE
+   3b. MODAL DE NOVO MONSTRO CUSTOMIZADO
    ========================================================================== */
+function abrirModalMonstro() {
+  document.getElementById("monstro-nome").value = "";
+  document.getElementById("monstro-hp").value   = "10";
+  document.getElementById("monstro-nd").value   = "";
+  document.getElementById("modal-monstro").classList.remove("oculto");
+  document.getElementById("monstro-nome").focus();
+}
+
+function fecharModalMonstro() {
+  document.getElementById("modal-monstro").classList.add("oculto");
+}
+
+function confirmarNovoMonstro() {
+  const nome = document.getElementById("monstro-nome").value.trim();
+  if (!nome) { document.getElementById("monstro-nome").focus(); return; }
+
+  const novoMonstro = {
+    id:      "mc_" + Date.now(),
+    nome,
+    vidaMax: parseInt(document.getElementById("monstro-hp").value) || 10,
+    nd:      document.getElementById("monstro-nd").value.trim() || "?",
+    custom:  true
+  };
+
+  monstrosCustom.push(novoMonstro);
+  localStorage.setItem("monstrosCustomRPG", JSON.stringify(monstrosCustom));
+  fecharModalMonstro();
+
+  const inputBusca = document.getElementById("busca-monstros");
+  renderizarColetanea(inputBusca ? inputBusca.value : "");
+}
+
+function deletarMonstroCustom(id) {
+  if (!confirm("Deseja remover este monstro da coletânea?")) return;
+  monstrosCustom = monstrosCustom.filter(m => m.id !== id);
+  localStorage.setItem("monstrosCustomRPG", JSON.stringify(monstrosCustom));
+
+  const inputBusca = document.getElementById("busca-monstros");
+  renderizarColetanea(inputBusca ? inputBusca.value : "");
+}
+
+
 function adicionarIniciativaDeMonstro(monstro) {
   // Monta o nome já com a letra (A, B, C…) antes de abrir o modal
   const quantidadeExistente = listaDeIniciativa.filter(c => c.nomeBase === monstro.nome).length;
@@ -575,26 +618,52 @@ function renderizarStatusGrupo() {
 /* ==========================================================================
    8. RENDERIZAÇÃO — COLETÂNEA DE MONSTROS
    ========================================================================== */
-function renderizarColetanea() {
+function renderizarColetanea(filtro = "") {
   const container = document.getElementById("conteudo-monstros");
   if (!container) return;
   container.innerHTML = "";
 
-  coletaneaMonstros.forEach(monstro => {
+  const termo = filtro.toLowerCase().trim();
+
+  // Mescla customizados (primeiro) com os oficiais
+  const listaCompleta = [
+    ...monstrosCustom,
+    ...coletaneaMonstros
+  ];
+
+  const lista = termo
+    ? listaCompleta.filter(m => m.nome.toLowerCase().includes(termo))
+    : listaCompleta;
+
+  lista.forEach(monstro => {
     const item = document.createElement("div");
-    item.className = "item-monstro";
+    item.className = "item-monstro" + (monstro.custom ? " item-monstro-custom" : "");
 
     const infoNome = document.createElement("span");
     infoNome.className = "item-monstro-nome";
-    infoNome.innerHTML = `${monstro.nome} <small class="item-monstro-hp">(HP: ${monstro.vidaMax} | ND: ${monstro.nd})</small>`;
+    infoNome.innerHTML = `${monstro.nome}${monstro.custom ? '<span class="badge-custom">custom</span>' : ''} <small class="item-monstro-hp">(HP: ${monstro.vidaMax} | ND: ${monstro.nd})</small>`;
+
+    const controles = document.createElement("div");
+    controles.style.display = "flex";
+    controles.style.alignItems = "center";
 
     const btnAdd = document.createElement("button");
     btnAdd.textContent = "+ Adicionar";
     btnAdd.className   = "btn-add-monstro";
     btnAdd.addEventListener("click", () => adicionarIniciativaDeMonstro(monstro));
+    controles.appendChild(btnAdd);
+
+    if (monstro.custom) {
+      const btnDel = document.createElement("button");
+      btnDel.textContent = "✕";
+      btnDel.className   = "btn-deletar-monstro";
+      btnDel.title       = "Remover da coletânea";
+      btnDel.addEventListener("click", () => deletarMonstroCustom(monstro.id));
+      controles.appendChild(btnDel);
+    }
 
     item.appendChild(infoNome);
-    item.appendChild(btnAdd);
+    item.appendChild(controles);
     container.appendChild(item);
   });
 }
@@ -691,6 +760,19 @@ document.getElementById("modal-heroi").addEventListener("keydown", (e) => { if (
    ========================================================================== */
 window.onload = () => {
   renderizarColetanea();
+
+  const inputBusca = document.getElementById("busca-monstros");
+  if (inputBusca) {
+    inputBusca.addEventListener("input", () => renderizarColetanea(inputBusca.value));
+  }
+
+  // Modal de monstro customizado
+  document.getElementById("btn-novo-monstro").addEventListener("click", abrirModalMonstro);
+  document.getElementById("fechar-monstro").addEventListener("click", fecharModalMonstro);
+  document.getElementById("btn-confirmar-monstro").addEventListener("click", confirmarNovoMonstro);
+  window.addEventListener("click", (e) => { if (e.target === document.getElementById("modal-monstro")) fecharModalMonstro(); });
+  document.getElementById("modal-monstro").addEventListener("keydown", (e) => { if (e.key === "Enter") confirmarNovoMonstro(); });
+
   atualizarIniciativa();
   renderizarStatusGrupo();
 

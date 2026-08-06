@@ -105,6 +105,26 @@
       </div>
     </div>
 
+    <!-- Modal Novo Monstro -->
+    <div id="modal-monstro" class="modal oculto">
+      <div class="modal-conteudo">
+        <span class="fechar-modal" id="fechar-monstro">&times;</span>
+        <h2>Novo Monstro</h2>
+        <div class="form-heroi">
+          <label for="monstro-nome">Nome</label>
+          <input type="text" id="monstro-nome" placeholder="Ex: Dragão da Caverna" />
+
+          <label for="monstro-hp">HP Máximo</label>
+          <input type="number" id="monstro-hp" value="10" min="1" />
+
+          <label for="monstro-nd">Nível de Desafio (ND)</label>
+          <input type="text" id="monstro-nd" placeholder="Ex: 1, 1/2, 5..." />
+
+          <button id="btn-confirmar-monstro" class="btn-confirmar">Criar Monstro</button>
+        </div>
+      </div>
+    </div>
+
   </header>
 
   <main class="dashboard">
@@ -168,7 +188,13 @@
     </section>
 
     <section class="painel monstros">
-      <h2>Coletânea de Monstros</h2>
+      <div class="painel-cabecalho">
+        <h2>Coletânea de Monstros</h2>
+        <div class="monstros-cabecalho-controles">
+          <input type="text" id="busca-monstros" class="input-busca-monstros" placeholder="🔍 Buscar...">
+          <button id="btn-novo-monstro" class="btn-novo-monstro-cab" title="Criar monstro customizado">+ Criar</button>
+        </div>
+      </div>
       <div id="conteudo-monstros"></div>
     </section>
 

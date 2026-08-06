@@ -764,9 +764,80 @@ body {
   color: #fff;
 }
 
+
 /* ==========================================================================
    11. COLETÂNEA DE MONSTROS
    ========================================================================== */
+.monstros-cabecalho-controles {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-novo-monstro-cab {
+  padding: 3px 8px;
+  background: #064D9F;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+
+.btn-novo-monstro-cab:hover {
+  background: #0a65cc;
+}
+
+.item-monstro-custom {
+  background: #1a1f2e;
+}
+
+.badge-custom {
+  font-size: 10px;
+  color: #5aabff;
+  background: #0d2040;
+  border: 1px solid #064D9F;
+  border-radius: 3px;
+  padding: 1px 4px;
+  margin-left: 4px;
+  vertical-align: middle;
+}
+
+.btn-deletar-monstro {
+  background: none;
+  border: none;
+  color: #555;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 2px 5px;
+  transition: color 0.15s;
+  margin-left: 4px;
+}
+
+.btn-deletar-monstro:hover {
+  color: #ff6b6b;
+}
+
+.input-busca-monstros {
+  background: #1e1e1e;
+  color: #fff;
+  border: 1px solid #555;
+  border-radius: 4px;
+  padding: 3px 8px;
+  font-size: 12px;
+  width: 110px;
+  transition: border-color 0.2s, width 0.2s;
+}
+
+.input-busca-monstros:focus {
+  outline: none;
+  border-color: #064D9F;
+  width: 140px;
+}
+
 .item-monstro {
   display: flex;
   justify-content: space-between;
