@@ -8,12 +8,20 @@ let turnoAtivo        = parseInt(localStorage.getItem("turnoAtivoRPG"))    || 0;
 // coletaneaMonstros é carregada pelo monstros.js
 
 const CONDICOES = [
-  { id: "inconsciente", emoji: "😴", label: "Inconsciente" },
-  { id: "paralisado",   emoji: "❄️", label: "Paralisado"   },
-  { id: "emChamas",     emoji: "🔥", label: "Em chamas"    },
-  { id: "morto",        emoji: "☠️", label: "Morto"        },
-  { id: "envenenado",   emoji: "🤢", label: "Envenenado"   },
-  { id: "amedrontado",  emoji: "😱", label: "Amedrontado"  },
+  { id: "agarrado",      emoji: "🤝", label: "Agarrado",      descricao: "Deslocamento vira 0. O efeito termina se quem agarrou ficar incapacitado ou o alvo escapar mecanicamente."        },
+  { id: "amedrontado",   emoji: "😱", label: "Amedrontado",    descricao: "Desvantagem em ataques e testes enquanto a fonte do medo estiver visível. Não pode se aproximar dela."             },
+  { id: "atordoado",     emoji: "💫", label: "Atordoado",      descricao: "Incapacitado, não pode se mover, fala balbuciante. Ataques contra ele têm vantagem."                              },
+  { id: "caido",         emoji: "🛡️", label: "Caído",          descricao: "Só pode rastejar. Ataques próprios com desvantagem. Ataques corpo a corpo contra si com vantagem, distância com desvantagem." },
+  { id: "cego",          emoji: "🙈", label: "Cego",           descricao: "Falha em testes que dependem de visão. Ataques próprios com desvantagem, ataques contra si com vantagem."          },
+  { id: "enfeiticado",   emoji: "💜", label: "Enfeitiçado",    descricao: "Não pode atacar o encantador. O encantador tem vantagem em interações sociais com o alvo."                         },
+  { id: "envenenado",    emoji: "🤢", label: "Envenenado",     descricao: "Desvantagem em jogadas de ataque e testes de habilidade."                                                          },
+  { id: "impedido",      emoji: "⛓️", label: "Impedido",       descricao: "Deslocamento vira 0. Ataques contra si com vantagem, próprios com desvantagem. Desvantagem em saves de Destreza."  },
+  { id: "incapacitado",  emoji: "🚫", label: "Incapacitado",   descricao: "Não pode realizar ações, ações bônus ou reações."                                                                  },
+  { id: "invisivel",     emoji: "👻", label: "Invisível",      descricao: "Impossível de ver sem sentidos especiais. Ataques próprios com vantagem, ataques contra si com desvantagem."       },
+  { id: "paralisado",    emoji: "❄️", label: "Paralisado",     descricao: "Incapacitado, não se move nem fala. Falha automática em saves de For/Des. Acertos adjacentes são críticos."        },
+  { id: "petrificado",   emoji: "🗿", label: "Petrificado",    descricao: "Transformado em pedra. Incapacitado, peso ×10, resistente a todo dano."                                            },
+  { id: "surdo",         emoji: "🔇", label: "Surdo",          descricao: "Não pode ouvir. Falha automática em testes baseados em audição."                                                   },
+  { id: "exaustao",      emoji: "😮‍💨", label: "Exaustão",      descricao: "Condição cumulativa. Níveis crescentes afetam testes e velocidade, podendo levar à morte no nível máximo."        },
 ];
 
 /* ==========================================================================
@@ -218,9 +226,33 @@ function toggleCondicao(id, condicaoId) {
   if (!criatura) return;
   if (!criatura.condicoes) criatura.condicoes = [];
 
-  const idx = criatura.condicoes.indexOf(condicaoId);
-  if (idx === -1) criatura.condicoes.push(condicaoId);
-  else            criatura.condicoes.splice(idx, 1);
+  const cond = CONDICOES.find(c => c.id === condicaoId);
+  const idx  = criatura.condicoes.indexOf(condicaoId);
+
+  if (idx === -1) {
+    criatura.condicoes.push(condicaoId);
+    adicionarHistorico(`${cond.emoji} ${criatura.nome} recebeu a condição: ${cond.label}`);
+  } else {
+    criatura.condicoes.splice(idx, 1);
+    adicionarHistorico(`✅ ${criatura.nome} se recuperou de: ${cond.label}`);
+  }
+
+  salvarESincronizar();
+}
+
+/** Alterna o estado de morte do combatente sem removê-lo da lista */
+function marcarMorto(id) {
+  const criatura = listaDeIniciativa.find(c => c.id === id);
+  if (!criatura) return;
+
+  if (criatura.morto) {
+    criatura.morto = false;
+    adicionarHistorico(`💚 ${criatura.nome} foi revivido!`, "sucesso");
+  } else {
+    if (!confirm(`Marcar "${criatura.nome}" como morto?`)) return;
+    criatura.morto = true;
+    adicionarHistorico(`☠️ ${criatura.nome} morreu!`, "falha");
+  }
 
   salvarESincronizar();
 }
@@ -267,7 +299,9 @@ function atualizarIniciativa() {
     const corHP      = calcularCorHP(personagem.hpAtual, personagem.hpMax);
 
     const item = document.createElement("div");
-    item.className = "item-iniciativa" + (ativo ? " item-iniciativa--ativo" : "");
+    item.className = "item-iniciativa"
+      + (ativo          ? " item-iniciativa--ativo" : "")
+      + (personagem.morto ? " item-iniciativa--morto" : "");
 
     // ── Cabeçalho: nome + botão remover
     const cabecalho = document.createElement("div");
@@ -275,7 +309,7 @@ function atualizarIniciativa() {
 
     const nome = document.createElement("span");
     nome.className = "item-iniciativa-nome";
-    nome.textContent = (ativo ? "▶ " : "") + personagem.nome;
+    nome.textContent = (ativo ? "▶ " : "") + (personagem.morto ? "☠️ " : "") + personagem.nome;
 
     const btnRemover = document.createElement("button");
     btnRemover.textContent = "✕";
@@ -341,26 +375,81 @@ function atualizarIniciativa() {
     controles.appendChild(inputHP);
     controles.appendChild(btnMais);
 
-    // ── Condições
-    const divCondicoes = document.createElement("div");
-    divCondicoes.className = "item-ini-condicoes";
+    // ── Condições ativas (tags visíveis no card)
+    const divTagsAtivas = document.createElement("div");
+    divTagsAtivas.className = "item-ini-tags-ativas";
+
+    condicoes.forEach(condId => {
+      const cond = CONDICOES.find(c => c.id === condId);
+      if (!cond) return;
+      const tag = document.createElement("button");
+      tag.className   = "tag-ativa";
+      tag.textContent = `${cond.emoji} ${cond.label}`;
+      tag.title       = cond.descricao;
+      tag.addEventListener("click", () => toggleCondicao(personagem.id, cond.id));
+      divTagsAtivas.appendChild(tag);
+    });
+
+    // ── Botão "+ Condição" + popover
+    const divCondicaoWrap = document.createElement("div");
+    divCondicaoWrap.className = "condicao-wrap";
+
+    const btnAbrirCond = document.createElement("button");
+    btnAbrirCond.className   = "btn-abrir-condicao";
+    btnAbrirCond.textContent = "+ Condição";
+
+    const popover = document.createElement("div");
+    popover.className = "condicao-popover oculto";
+    document.body.appendChild(popover);
 
     CONDICOES.forEach(cond => {
       const ativa = condicoes.includes(cond.id);
-      const tag   = document.createElement("button");
-      tag.className = "tag-condicao" + (ativa ? " tag-condicao--ativa" : "");
-      tag.title     = cond.label;
-      tag.textContent = cond.emoji;
-      tag.addEventListener("click", () => toggleCondicao(personagem.id, cond.id));
-      divCondicoes.appendChild(tag);
+      const opcao = document.createElement("button");
+      opcao.className   = "condicao-opcao" + (ativa ? " condicao-opcao--ativa" : "");
+      opcao.title       = cond.descricao;
+      opcao.innerHTML   = `<span class="cond-emoji">${cond.emoji}</span><span class="cond-label">${cond.label}</span>`;
+      opcao.addEventListener("click", (e) => {
+        e.stopPropagation();
+        toggleCondicao(personagem.id, cond.id);
+      });
+      popover.appendChild(opcao);
     });
+
+    btnAbrirCond.addEventListener("click", (e) => {
+      e.stopPropagation();
+      // Fecha todos os outros popovers abertos
+      document.querySelectorAll(".condicao-popover:not(.oculto)").forEach(p => {
+        if (p !== popover) p.classList.add("oculto");
+      });
+      if (popover.classList.contains("oculto")) {
+        const rect = btnAbrirCond.getBoundingClientRect();
+        popover.style.top  = (rect.bottom + 6) + "px";
+        popover.style.left = rect.left + "px";
+      }
+      popover.classList.toggle("oculto");
+    });
+
+    // ── Rodapé: "+ Condição" + "☠️"
+    const divRodape = document.createElement("div");
+    divRodape.className = "item-ini-rodape";
+
+    divCondicaoWrap.appendChild(btnAbrirCond);
+    divRodape.appendChild(divCondicaoWrap);
+
+    const btnMorte = document.createElement("button");
+    btnMorte.textContent = personagem.morto ? "💚 Reviver" : "☠️";
+    btnMorte.className   = personagem.morto ? "btn-morte-ini btn-morte-ini--reviver" : "btn-morte-ini";
+    btnMorte.title       = personagem.morto ? "Reviver combatente" : "Marcar como morto";
+    btnMorte.addEventListener("click", () => marcarMorto(personagem.id));
+    divRodape.appendChild(btnMorte);
 
     // ── Monta item
     item.appendChild(cabecalho);
     item.appendChild(iniciativaSpan);
     item.appendChild(barraWrap);
     item.appendChild(controles);
-    item.appendChild(divCondicoes);
+    if (divTagsAtivas.children.length > 0) item.appendChild(divTagsAtivas);
+    item.appendChild(divRodape);
     container.appendChild(item);
   });
 
@@ -614,7 +703,13 @@ window.onload = () => {
     areaAnotacoes.addEventListener("input", () => localStorage.setItem("anotacoesRPG", areaAnotacoes.value));
   }
 
-  // Botões de controle de turno (painel turno)
+  // Fecha qualquer popover de condição ao clicar fora
+  document.addEventListener("click", () => {
+    document.querySelectorAll(".condicao-popover:not(.oculto)")
+      .forEach(p => p.classList.add("oculto"));
+  });
+
+  // Botões de controle de turno
   document.getElementById("btn-turno-anterior").addEventListener("click", turnoAnterior);
   document.getElementById("btn-proximo-turno").addEventListener("click", proximoTurno);
 };

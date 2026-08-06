@@ -185,6 +185,22 @@ body {
   box-shadow: 0 0 0 1px #064D9F;
 }
 
+/* Morto */
+.item-iniciativa--morto {
+  border-color: #8b1a1a;
+  background: #1e1212;
+  opacity: 0.75;
+}
+
+.item-iniciativa--morto .item-iniciativa-nome {
+  text-decoration: line-through;
+  color: #999;
+}
+
+.item-iniciativa--morto .barra-hp-fill {
+  background: #555 !important;
+}
+
 /* Cabeçalho: nome + botão remover */
 .item-ini-cabecalho {
   display: flex;
@@ -216,6 +232,45 @@ body {
 
 .btn-remover-ini:hover {
   color: #ff6b6b;
+}
+
+.btn-morte-ini {
+  background: none;
+  border: 1px dashed #555;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 3px 8px;
+  opacity: 0.5;
+  transition: opacity 0.15s, border-color 0.15s;
+  line-height: 1.4;
+  color: #ccc;
+}
+
+.btn-morte-ini:hover {
+  opacity: 1;
+  border-color: #e63946;
+  color: #e63946;
+}
+
+.btn-morte-ini--reviver {
+  opacity: 1;
+  border-color: #2ecc71;
+  color: #2ecc71;
+}
+
+.btn-morte-ini--reviver:hover {
+  border-color: #27ae60;
+  color: #27ae60;
+}
+
+/* Rodapé do item: condição + morte lado a lado */
+.item-ini-rodape {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+  margin-top: 2px;
 }
 
 .item-iniciativa-valor {
@@ -292,33 +347,111 @@ body {
   border-color: #064D9F;
 }
 
-/* Condições */
-.item-ini-condicoes {
+/* Condições — tags ativas no card */
+.item-ini-tags-ativas {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
+  margin-bottom: 6px;
 }
 
-.tag-condicao {
-  background: #2a2a2a;
-  border: 1px solid #444;
-  border-radius: 4px;
-  padding: 2px 5px;
-  font-size: 14px;
-  cursor: pointer;
-  opacity: 0.35;
-  transition: opacity 0.15s, border-color 0.15s;
-  line-height: 1.4;
-}
-
-.tag-condicao:hover {
-  opacity: 0.7;
-}
-
-.tag-condicao--ativa {
-  opacity: 1;
-  border-color: #f39c12;
+.tag-ativa {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
   background: #2e2210;
+  border: 1px solid #f39c12;
+  border-radius: 4px;
+  padding: 2px 7px;
+  font-size: 12px;
+  color: #f5c97a;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.tag-ativa:hover {
+  background: #4a3318;
+}
+
+/* Botão + Condição e popover */
+.condicao-wrap {
+  position: relative;
+  overflow: visible;
+}
+
+.btn-abrir-condicao {
+  background: none;
+  border: 1px dashed #555;
+  border-radius: 4px;
+  color: #888;
+  font-size: 11px;
+  padding: 3px 8px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.btn-abrir-condicao:hover {
+  border-color: #f39c12;
+  color: #f39c12;
+}
+
+.condicao-popover {
+  position: fixed;
+  z-index: 1000;
+  background: #1a1a1a;
+  border: 1px solid #444;
+  border-radius: 8px;
+  padding: 8px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  width: 280px;
+  max-height: 260px;
+  overflow-y: auto;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.6);
+}
+
+.condicao-opcao {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #2a2a2a;
+  border: 1px solid #3a3a3a;
+  border-radius: 5px;
+  padding: 5px 8px;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+  text-align: left;
+}
+
+.condicao-opcao:hover {
+  background: #333;
+  border-color: #666;
+}
+
+.condicao-opcao--ativa {
+  background: #2e2210;
+  border-color: #f39c12;
+}
+
+.condicao-opcao--ativa:hover {
+  background: #3d2d14;
+}
+
+.cond-emoji {
+  font-size: 16px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.cond-label {
+  font-size: 11px;
+  color: #ddd;
+  line-height: 1.2;
+}
+
+.condicao-opcao--ativa .cond-label {
+  color: #f5c97a;
 }
 
 /* ==========================================================================
