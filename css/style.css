@@ -273,6 +273,208 @@ body {
   margin-top: 2px;
 }
 
+/* Botões de ação (dano/cura/morte) agrupados */
+.item-ini-acoes {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.btn-acao-ini {
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 3px 7px;
+  transition: background 0.15s, opacity 0.15s;
+  line-height: 1.4;
+}
+
+.btn-acao-dano {
+  background: #5a1a1a;
+  color: #ffaaaa;
+  border: 1px solid #8b2a2a;
+}
+
+.btn-acao-dano:hover {
+  background: #8b2a2a;
+  color: #fff;
+}
+
+.btn-acao-cura {
+  background: #1a3a1a;
+  color: #88dd88;
+  border: 1px solid #2a6a2a;
+}
+
+.btn-acao-cura:hover {
+  background: #2a6a2a;
+  color: #fff;
+}
+
+/* ==========================================================================
+   14. MODAL DANO / CURA
+   ========================================================================== */
+.modal-dano-hp-atual {
+  font-size: 13px;
+  color: #aaa;
+  margin: -8px 0 4px;
+}
+
+.modal-dano-seletor {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.modal-dano-seletor-grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.modal-dano-seletor-grupo label {
+  font-size: 11px;
+  color: #777;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  margin: 0;
+}
+
+.modal-dano-seletor-grupo input,
+.modal-dano-seletor-grupo select {
+  background: #2a2a2a;
+  color: #fff;
+  border: 1px solid #555;
+  border-radius: 6px;
+  padding: 7px 10px;
+  font-size: 15px;
+  font-weight: bold;
+  width: 70px;
+  text-align: center;
+}
+
+.modal-dano-seletor-grupo select {
+  width: 80px;
+  cursor: pointer;
+}
+
+.modal-dano-seletor-grupo input:focus,
+.modal-dano-seletor-grupo select:focus {
+  outline: none;
+  border-color: #064D9F;
+}
+
+.modal-dano-seletor-sep {
+  font-size: 22px;
+  font-weight: bold;
+  color: #555;
+  padding-bottom: 6px;
+}
+
+.btn-rolar-dano-modal {
+  padding: 8px 14px;
+  background: #2a2a2a;
+  color: #fff;
+  border: 1px solid #064D9F;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+  align-self: flex-end;
+}
+
+.btn-rolar-dano-modal:hover {
+  background: #064D9F;
+}
+
+.modal-dano-resultado-wrap {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin: 4px 0;
+}
+
+.modal-dano-valor {
+  font-size: 2.2rem;
+  font-weight: bold;
+  color: #fff;
+  min-width: 48px;
+  display: inline-block;
+}
+
+.modal-dano-valor--dano {
+  color: #ff6b6b;
+}
+
+.modal-dano-valor--cura {
+  color: #6bffb0;
+}
+
+.modal-dano-formula {
+  font-size: 12px;
+  color: #777;
+}
+
+.btn-confirmar-dano {
+  background: #8b1a1a !important;
+}
+
+.btn-confirmar-dano:hover {
+  background: #c0392b !important;
+}
+
+.btn-confirmar-cura {
+  background: #1a6b1a !important;
+}
+
+.btn-confirmar-cura:hover {
+  background: #27ae60 !important;
+}
+
+.btn-morto-modal {
+  width: 100%;
+  padding: 8px;
+  background: none;
+  border: 1px dashed #555;
+  border-radius: 4px;
+  color: #888;
+  font-size: 13px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+  margin-top: 4px;
+}
+
+.btn-morto-modal:hover {
+  border-color: #e63946;
+  color: #e63946;
+}
+
+.btn-morto-modal--reviver {
+  border-color: #2ecc71;
+  color: #2ecc71;
+}
+
+.btn-morto-modal--reviver:hover {
+  border-color: #27ae60;
+  color: #27ae60;
+}
+
+.modal-dano-aviso {
+  font-size: 12px;
+  color: #f39c12;
+  background: #2e2210;
+  border: 1px solid #f39c12;
+  border-radius: 4px;
+  padding: 6px 10px;
+  margin-top: 4px;
+  text-align: center;
+}
+
 .item-iniciativa-valor {
   color: #28a745;
   font-size: 0.8em;
@@ -842,34 +1044,98 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px;
-  border-bottom: 1px solid #333;
+  padding: 8px 10px;
+  border-radius: 6px;
+  margin-bottom: 4px;
+  background: #1e1e1e;
+  border: 1px solid #2e2e2e;
+  border-left: 3px solid #333;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.item-monstro:hover {
+  background: #242424;
+  border-color: #555;
+  border-left-color: #064D9F;
 }
 
 .item-monstro:last-child {
-  border-bottom: none;
+  margin-bottom: 0;
+}
+
+.item-monstro-custom {
+  background: #1a1f2e;
+  border-color: #1a2a45;
+  border-left-color: #064D9F;
+}
+
+.item-monstro-custom:hover {
+  background: #1e2535;
+  border-left-color: #5aabff;
+}
+
+.item-monstro-info {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  flex: 1;
 }
 
 .item-monstro-nome {
-  color: #eee;
-  font-size: 14px;
+  color: #f0f0f0;
+  font-size: 13px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 5px;
 }
 
-.item-monstro-hp {
-  color: #777;
-  font-size: 12px;
+.item-monstro-stats {
+  display: flex;
+  gap: 5px;
+}
+
+.item-monstro-stat {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  background: #252525;
+  border: 1px solid #333;
+  border-radius: 4px;
+  padding: 2px 7px;
+  font-size: 11px;
+}
+
+.item-monstro-stat-label {
+  color: #666;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.item-monstro-stat-valor {
+  color: #ddd;
+  font-weight: bold;
+}
+
+.item-monstro-acoes {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
 }
 
 .btn-add-monstro {
-  padding: 6px 12px;
+  padding: 5px 10px;
   background: #064D9F;
   color: white;
   border: none;
   border-radius: 4px;
   font-weight: bold;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 12px;
   transition: background 0.2s;
+  white-space: nowrap;
 }
 
 .btn-add-monstro:hover {

@@ -74,6 +74,9 @@
           <label for="heroi-hp">HP Máximo</label>
           <input type="number" id="heroi-hp" value="10" min="1" />
 
+          <label for="heroi-ca">Classe de Armadura (CA)</label>
+          <input type="number" id="heroi-ca" value="10" min="1" />
+
           <button id="btn-confirmar-heroi" class="btn-confirmar">Criar Herói</button>
         </div>
       </div>
@@ -117,10 +120,62 @@
           <label for="monstro-hp">HP Máximo</label>
           <input type="number" id="monstro-hp" value="10" min="1" />
 
-          <label for="monstro-nd">Nível de Desafio (ND)</label>
+          <label for="monstro-nd">Classe de Armadura (CA)</label>
           <input type="text" id="monstro-nd" placeholder="Ex: 1, 1/2, 5..." />
 
           <button id="btn-confirmar-monstro" class="btn-confirmar">Criar Monstro</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal Dano / Cura -->
+    <div id="modal-dano-cura" class="modal oculto">
+      <div class="modal-conteudo">
+        <span class="fechar-modal" id="fechar-dano-cura">&times;</span>
+        <h2 id="modal-dano-titulo">Dano</h2>
+        <p id="modal-dano-hp-atual" class="modal-dano-hp-atual"></p>
+
+        <div class="form-heroi">
+          <!-- Seletor de dados -->
+          <label>Rolar dados</label>
+          <div class="modal-dano-seletor">
+            <div class="modal-dano-seletor-grupo">
+              <label for="modal-dano-qtd">Qtd</label>
+              <input type="number" id="modal-dano-qtd" value="1" min="1" max="20" />
+            </div>
+            <span class="modal-dano-seletor-sep">d</span>
+            <div class="modal-dano-seletor-grupo">
+              <label for="modal-dano-tipo">Dado</label>
+              <select id="modal-dano-tipo">
+                <option value="4">4</option>
+                <option value="6">6</option>
+                <option value="8">8</option>
+                <option value="10">10</option>
+                <option value="12">12</option>
+                <option value="20" selected>20</option>
+                <option value="100">100</option>
+              </select>
+            </div>
+            <div class="modal-dano-seletor-grupo">
+              <label for="modal-dano-modificador">Mod</label>
+              <input type="number" id="modal-dano-modificador" value="0" />
+            </div>
+            <button type="button" id="btn-rolar-dano-modal" class="btn-rolar-dano-modal">🎲 Rolar</button>
+          </div>
+
+          <!-- Resultado da rolagem -->
+          <div class="modal-dano-resultado-wrap">
+            <span id="modal-dano-resultado" class="modal-dano-valor">—</span>
+            <span id="modal-dano-formula-txt" class="modal-dano-formula"></span>
+          </div>
+
+          <!-- Valor manual -->
+          <label for="modal-dano-manual">Ou digite o valor</label>
+          <input type="number" id="modal-dano-manual" placeholder="Valor final" min="0" />
+
+          <button id="btn-confirmar-dano" class="btn-confirmar">Aplicar</button>
+          <button id="btn-morto-modal" class="btn-morto-modal" style="display:none;">☠️ Marcar como Morto</button>
+          <p id="modal-dano-aviso" class="modal-dano-aviso" style="display:none;">⚠️ Lembre-se que a cura não pode exceder o máximo de vida configurado.</p>
         </div>
       </div>
     </div>

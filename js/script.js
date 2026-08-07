@@ -52,6 +52,7 @@ function abrirModalHeroi() {
   document.getElementById("heroi-classe").value = "";
   document.getElementById("heroi-nivel").value  = "1";
   document.getElementById("heroi-hp").value     = "10";
+  document.getElementById("heroi-ca").value     = "10";
   document.getElementById("modal-heroi").classList.remove("oculto");
   document.getElementById("heroi-nome").focus();
 }
@@ -70,6 +71,7 @@ function confirmarNovoHeroi() {
     classe: document.getElementById("heroi-classe").value.trim() || "Aventureiro",
     nivel:  document.getElementById("heroi-nivel").value || "1",
     hpMax:  parseInt(document.getElementById("heroi-hp").value) || 10,
+    ca:     parseInt(document.getElementById("heroi-ca").value) || 10,
     imagem: ""
   });
 
@@ -100,7 +102,7 @@ function confirmarNovoMonstro() {
     id:      "mc_" + Date.now(),
     nome,
     vidaMax: parseInt(document.getElementById("monstro-hp").value) || 10,
-    nd:      document.getElementById("monstro-nd").value.trim() || "?",
+    ca:      document.getElementById("monstro-nd").value.trim() || "?",
     custom:  true
   };
 
@@ -301,6 +303,103 @@ function marcarMorto(id) {
 }
 
 /* ==========================================================================
+   5b. MODAL DE DANO / CURA
+   ========================================================================== */
+let _modalDanoCuraId   = null;
+let _modalDanoCuraTipo = null;
+
+function abrirModalDanoCura(id, tipo) {
+  const criatura = listaDeIniciativa.find(c => c.id === id);
+  if (!criatura) return;
+
+  _modalDanoCuraId   = id;
+  _modalDanoCuraTipo = tipo;
+  const isDano = tipo === "dano";
+
+  document.getElementById("modal-dano-titulo").textContent    = isDano ? `⚔️ Dano — ${criatura.nome}` : `💊 Cura — ${criatura.nome}`;
+  document.getElementById("modal-dano-hp-atual").textContent  = `HP atual: ${criatura.hpAtual} / ${criatura.hpMax}`;
+  document.getElementById("modal-dano-resultado").textContent = "—";
+  document.getElementById("modal-dano-resultado").className   = "modal-dano-valor";
+  document.getElementById("modal-dano-formula-txt").textContent = "";
+  document.getElementById("modal-dano-modificador").value     = "0";
+  document.getElementById("modal-dano-manual").value          = "";
+  document.getElementById("modal-dano-qtd").value             = "1";
+  document.getElementById("modal-dano-tipo").value            = "20";
+  document.getElementById("btn-confirmar-dano").textContent   = isDano ? "⚔️ Aplicar Dano" : "💊 Aplicar Cura";
+  document.getElementById("btn-confirmar-dano").className     = isDano ? "btn-confirmar btn-confirmar-dano" : "btn-confirmar btn-confirmar-cura";
+
+  const btnMortoModal = document.getElementById("btn-morto-modal");
+  btnMortoModal.style.display = isDano ? "block" : "none";
+  btnMortoModal.textContent   = criatura.morto ? "💚 Reviver" : "☠️ Marcar como Morto";
+  btnMortoModal.className     = criatura.morto ? "btn-morto-modal btn-morto-modal--reviver" : "btn-morto-modal";
+
+  const aviso = document.getElementById("modal-dano-aviso");
+  if (aviso) aviso.style.display = isDano ? "none" : "block";
+
+  document.getElementById("modal-dano-cura").classList.remove("oculto");
+  document.getElementById("modal-dano-modificador").focus();
+}
+
+function fecharModalDanoCura() {
+  document.getElementById("modal-dano-cura").classList.add("oculto");
+  _modalDanoCuraId   = null;
+  _modalDanoCuraTipo = null;
+}
+
+function rolarDadoModal() {
+  const quantidade  = parseInt(document.getElementById("modal-dano-qtd").value)  || 1;
+  const lados       = parseInt(document.getElementById("modal-dano-tipo").value)  || 20;
+  const modificador = parseInt(document.getElementById("modal-dano-modificador").value) || 0;
+
+  let soma = 0;
+  const rolagens = [];
+  for (let i = 0; i < quantidade; i++) {
+    const r = Math.floor(Math.random() * lados) + 1;
+    soma += r;
+    rolagens.push(r);
+  }
+  const total = Math.max(0, soma + modificador);
+
+  const display = document.getElementById("modal-dano-resultado");
+  display.textContent = total;
+  display.className   = "modal-dano-valor " + (_modalDanoCuraTipo === "dano" ? "modal-dano-valor--dano" : "modal-dano-valor--cura");
+
+  const sinal = modificador >= 0 ? "+" : "";
+  document.getElementById("modal-dano-formula-txt").textContent = `(${quantidade}d${lados}: [${rolagens.join(", ")}] ${sinal}${modificador})`;
+  document.getElementById("modal-dano-manual").value = total;
+}
+
+function confirmarDanoCura() {
+  const valor = parseInt(document.getElementById("modal-dano-manual").value);
+  if (isNaN(valor) || valor < 0) { document.getElementById("modal-dano-manual").focus(); return; }
+
+  const criatura = listaDeIniciativa.find(c => c.id === _modalDanoCuraId);
+  if (!criatura) return;
+
+  const hpAntes = criatura.hpAtual;
+
+  if (_modalDanoCuraTipo === "dano") {
+    criatura.hpAtual = Math.max(0, criatura.hpAtual - valor);
+    adicionarHistorico(`⚔️ ${criatura.nome} recebeu ${valor} de dano (${hpAntes} → ${criatura.hpAtual} HP)`, "falha");
+    if (criatura.hpAtual === 0 && !criatura.morto) {
+      adicionarHistorico(`💀 ${criatura.nome} chegou a 0 HP!`, "falha");
+    }
+  } else {
+    criatura.hpAtual = Math.min(criatura.hpMax, criatura.hpAtual + valor);
+    adicionarHistorico(`💊 ${criatura.nome} recuperou ${valor} de HP (${hpAntes} → ${criatura.hpAtual} HP)`, "sucesso");
+  }
+
+  fecharModalDanoCura();
+  salvarESincronizar();
+}
+
+function mortoViaModal() {
+  const id = _modalDanoCuraId;
+  fecharModalDanoCura();
+  marcarMorto(id);
+}
+
+/* ==========================================================================
    5. CONTROLE DE TURNO
    ========================================================================== */
 function proximoTurno() {
@@ -472,19 +571,38 @@ function atualizarIniciativa() {
       popover.classList.toggle("oculto");
     });
 
-    // ── Rodapé: "+ Condição" + "☠️"
+    // ── Rodapé: "+ Condição" | "⚔️ Dano" | "💊 Cura" | "☠️"
     const divRodape = document.createElement("div");
     divRodape.className = "item-ini-rodape";
 
     divCondicaoWrap.appendChild(btnAbrirCond);
     divRodape.appendChild(divCondicaoWrap);
 
+    const divAcoes = document.createElement("div");
+    divAcoes.className = "item-ini-acoes";
+
+    const btnDano = document.createElement("button");
+    btnDano.textContent = "⚔️ Dano";
+    btnDano.className   = "btn-acao-ini btn-acao-dano";
+    btnDano.title       = "Aplicar dano";
+    btnDano.addEventListener("click", () => abrirModalDanoCura(personagem.id, "dano"));
+
+    const btnCura = document.createElement("button");
+    btnCura.textContent = "💊 Cura";
+    btnCura.className   = "btn-acao-ini btn-acao-cura";
+    btnCura.title       = "Aplicar cura";
+    btnCura.addEventListener("click", () => abrirModalDanoCura(personagem.id, "cura"));
+
     const btnMorte = document.createElement("button");
-    btnMorte.textContent = personagem.morto ? "💚 Reviver" : "☠️";
+    btnMorte.textContent = personagem.morto ? "💚" : "☠️";
     btnMorte.className   = personagem.morto ? "btn-morte-ini btn-morte-ini--reviver" : "btn-morte-ini";
     btnMorte.title       = personagem.morto ? "Reviver combatente" : "Marcar como morto";
     btnMorte.addEventListener("click", () => marcarMorto(personagem.id));
-    divRodape.appendChild(btnMorte);
+
+    divAcoes.appendChild(btnDano);
+    divAcoes.appendChild(btnCura);
+    divAcoes.appendChild(btnMorte);
+    divRodape.appendChild(divAcoes);
 
     // ── Monta item
     item.appendChild(cabecalho);
@@ -552,7 +670,7 @@ function renderizarStatusGrupo() {
     // Subtítulo
     const sub = document.createElement("div");
     sub.className   = "card-heroi-sub";
-    sub.textContent = `Nvl ${heroi.nivel} | ${heroi.classe}`;
+    sub.textContent = `Nvl ${heroi.nivel} | ${heroi.classe}${heroi.ca ? ` | CA ${heroi.ca}` : ""}`;
 
     // Barra de HP
     const barraWrap = document.createElement("div");
@@ -625,7 +743,6 @@ function renderizarColetanea(filtro = "") {
 
   const termo = filtro.toLowerCase().trim();
 
-  // Mescla customizados (primeiro) com os oficiais
   const listaCompleta = [
     ...monstrosCustom,
     ...coletaneaMonstros
@@ -639,19 +756,45 @@ function renderizarColetanea(filtro = "") {
     const item = document.createElement("div");
     item.className = "item-monstro" + (monstro.custom ? " item-monstro-custom" : "");
 
-    const infoNome = document.createElement("span");
-    infoNome.className = "item-monstro-nome";
-    infoNome.innerHTML = `${monstro.nome}${monstro.custom ? '<span class="badge-custom">custom</span>' : ''} <small class="item-monstro-hp">(HP: ${monstro.vidaMax} | ND: ${monstro.nd})</small>`;
+    // ── Info: nome + stats em badges
+    const info = document.createElement("div");
+    info.className = "item-monstro-info";
 
-    const controles = document.createElement("div");
-    controles.style.display = "flex";
-    controles.style.alignItems = "center";
+    const nomeLinha = document.createElement("div");
+    nomeLinha.className = "item-monstro-nome";
+    nomeLinha.textContent = monstro.nome;
+    if (monstro.custom) {
+      const badge = document.createElement("span");
+      badge.className   = "badge-custom";
+      badge.textContent = "custom";
+      nomeLinha.appendChild(badge);
+    }
+
+    const stats = document.createElement("div");
+    stats.className = "item-monstro-stats";
+    stats.innerHTML = `
+      <span class="item-monstro-stat">
+        <span class="item-monstro-stat-label">HP</span>
+        <span class="item-monstro-stat-valor">${monstro.vidaMax}</span>
+      </span>
+      <span class="item-monstro-stat">
+        <span class="item-monstro-stat-label">CA</span>
+        <span class="item-monstro-stat-valor">${monstro.ca ?? monstro.nd ?? "?"}</span>
+      </span>
+    `;
+
+    info.appendChild(nomeLinha);
+    info.appendChild(stats);
+
+    // ── Ações: adicionar + deletar (custom)
+    const acoes = document.createElement("div");
+    acoes.className = "item-monstro-acoes";
 
     const btnAdd = document.createElement("button");
     btnAdd.textContent = "+ Adicionar";
     btnAdd.className   = "btn-add-monstro";
     btnAdd.addEventListener("click", () => adicionarIniciativaDeMonstro(monstro));
-    controles.appendChild(btnAdd);
+    acoes.appendChild(btnAdd);
 
     if (monstro.custom) {
       const btnDel = document.createElement("button");
@@ -659,11 +802,11 @@ function renderizarColetanea(filtro = "") {
       btnDel.className   = "btn-deletar-monstro";
       btnDel.title       = "Remover da coletânea";
       btnDel.addEventListener("click", () => deletarMonstroCustom(monstro.id));
-      controles.appendChild(btnDel);
+      acoes.appendChild(btnDel);
     }
 
-    item.appendChild(infoNome);
-    item.appendChild(controles);
+    item.appendChild(info);
+    item.appendChild(acoes);
     container.appendChild(item);
   });
 }
@@ -790,6 +933,14 @@ window.onload = () => {
     document.querySelectorAll(".condicao-popover:not(.oculto)")
       .forEach(p => p.classList.add("oculto"));
   });
+
+  // Modal de dano/cura
+  document.getElementById("fechar-dano-cura").addEventListener("click", fecharModalDanoCura);
+  document.getElementById("btn-confirmar-dano").addEventListener("click", confirmarDanoCura);
+  document.getElementById("btn-morto-modal").addEventListener("click", mortoViaModal);
+  document.getElementById("btn-rolar-dano-modal").addEventListener("click", rolarDadoModal);
+  window.addEventListener("click", (e) => { if (e.target === document.getElementById("modal-dano-cura")) fecharModalDanoCura(); });
+  document.getElementById("modal-dano-cura").addEventListener("keydown", (e) => { if (e.key === "Enter") confirmarDanoCura(); });
 
   // Botões de controle de turno
   document.getElementById("btn-turno-anterior").addEventListener("click", turnoAnterior);

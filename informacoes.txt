@@ -9,10 +9,10 @@ https://game-icons.net/
 Falta implementar:
 
 - Ajustar os cards de monstros pra ficar mais bonito.
-- Criar a opção de criar um monstro se preferir.
-- Ter uma barrinha de pesquisa no painel de monstros.
+FEITO - Criar a opção de criar um monstro se preferir.
+FEITO - Ter uma barrinha de pesquisa no painel de monstros.
 - Decidir o que fazer com o controle de turno (reduzir e aumentar alguma outra ou acoplar ela no painel de combate).
-- Condições quando forem aplicadas e retiradas, aparecer no histórico.
+FEITO - Condições quando forem aplicadas e retiradas, aparecer no histórico.
 - Aparecer no histórico adição de monstros e heróis.
 
 ===================
