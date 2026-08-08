@@ -25,24 +25,29 @@ const CORES_HEROI = [
 
 let _corSelecionada = null;
 
-function renderizarSeletorCores() {
+function renderizarSeletorCores(idEdicao = null) {
   const container = document.getElementById("heroi-cores");
   if (!container) return;
   container.innerHTML = "";
 
-  const coresUsadas = partyHerois.map(h => h.cor).filter(Boolean);
+  // Bloqueia cores de outros heróis (não do que está sendo editado)
+  const coresUsadas = partyHerois
+    .filter(h => h.id !== idEdicao)
+    .map(h => h.cor).filter(Boolean);
 
   CORES_HEROI.forEach(cor => {
     const usada = coresUsadas.includes(cor.id);
     const btn   = document.createElement("button");
     btn.type      = "button";
     btn.title     = usada ? `${cor.label} (em uso)` : cor.label;
-    btn.className = "cor-heroi-btn" + (usada ? " cor-heroi-btn--usada" : "") + (_corSelecionada === cor.id ? " cor-heroi-btn--selecionada" : "");
+    btn.className = "cor-heroi-btn"
+      + (usada              ? " cor-heroi-btn--usada"      : "")
+      + (_corSelecionada === cor.id ? " cor-heroi-btn--selecionada" : "");
     btn.style.background = cor.hex;
     btn.disabled = usada;
     btn.addEventListener("click", () => {
       _corSelecionada = cor.id;
-      renderizarSeletorCores();
+      renderizarSeletorCores(idEdicao);
     });
     container.appendChild(btn);
   });
@@ -90,17 +95,26 @@ function salvarESincronizar() {
 /* ==========================================================================
    3. MODAL DE NOVO HERÓI
    ========================================================================== */
-function abrirModalHeroi() {
-  document.getElementById("heroi-nome").value   = "";
-  document.getElementById("heroi-classe").value = "";
-  document.getElementById("heroi-nivel").value  = "1";
-  document.getElementById("heroi-hp").value     = "10";
-  document.getElementById("heroi-ca").value     = "10";
-  // Seleciona automaticamente a primeira cor disponível
-  const coresUsadas = partyHerois.map(h => h.cor).filter(Boolean);
+function abrirModalHeroi(idEdicao = null) {
+  const heroi = idEdicao ? partyHerois.find(h => h.id === idEdicao) : null;
+
+  document.getElementById("modal-heroi-titulo").textContent    = heroi ? "Editar Herói" : "Novo Herói";
+  document.getElementById("btn-confirmar-heroi").textContent   = heroi ? "Salvar Alterações" : "Criar Herói";
+  document.getElementById("heroi-id-edicao").value             = idEdicao || "";
+  document.getElementById("heroi-nome").value   = heroi ? heroi.nome   : "";
+  document.getElementById("heroi-classe").value = heroi ? heroi.classe : "";
+  document.getElementById("heroi-nivel").value  = heroi ? heroi.nivel  : "1";
+  document.getElementById("heroi-hp").value     = heroi ? heroi.hpMax  : "10";
+  document.getElementById("heroi-ca").value     = heroi ? heroi.ca     : "10";
+
+  // Seletor de cores — em edição permite trocar, mas bloqueia cores de OUTROS heróis
+  const coresUsadas = partyHerois
+    .filter(h => h.id !== idEdicao)
+    .map(h => h.cor).filter(Boolean);
   const primeiraLivre = CORES_HEROI.find(c => !coresUsadas.includes(c.id));
-  _corSelecionada = primeiraLivre ? primeiraLivre.id : null;
-  renderizarSeletorCores();
+  _corSelecionada = heroi?.cor || (primeiraLivre ? primeiraLivre.id : null);
+
+  renderizarSeletorCores(idEdicao);
   document.getElementById("modal-heroi").classList.remove("oculto");
   document.getElementById("heroi-nome").focus();
 }
@@ -110,19 +124,44 @@ function fecharModalHeroi() {
 }
 
 function confirmarNovoHeroi() {
-  const nome = document.getElementById("heroi-nome").value.trim();
+  const nome     = document.getElementById("heroi-nome").value.trim();
   if (!nome) { document.getElementById("heroi-nome").focus(); return; }
 
-  partyHerois.push({
-    id:     "h_" + Date.now(),
-    nome:   nome,
-    classe: document.getElementById("heroi-classe").value.trim() || "Aventureiro",
-    nivel:  document.getElementById("heroi-nivel").value || "1",
-    hpMax:  parseInt(document.getElementById("heroi-hp").value) || 10,
-    ca:     parseInt(document.getElementById("heroi-ca").value) || 10,
-    cor:    _corSelecionada,
-    imagem: ""
-  });
+  const idEdicao = document.getElementById("heroi-id-edicao").value;
+
+  if (idEdicao) {
+    // EDIÇÃO
+    const heroi = partyHerois.find(h => h.id === idEdicao);
+    if (!heroi) return;
+
+    const hpMaxAnterior = heroi.hpMax;
+    heroi.nome   = nome;
+    heroi.classe = document.getElementById("heroi-classe").value.trim() || "Aventureiro";
+    heroi.nivel  = document.getElementById("heroi-nivel").value || "1";
+    heroi.hpMax  = parseInt(document.getElementById("heroi-hp").value) || 10;
+    heroi.ca     = parseInt(document.getElementById("heroi-ca").value) || 10;
+    heroi.cor    = _corSelecionada;
+
+    // Atualiza hpMax na iniciativa também se mudou
+    if (heroi.hpMax !== hpMaxAnterior) {
+      const naIni = listaDeIniciativa.find(c => c.idHeroi === idEdicao);
+      if (naIni) naIni.hpMax = heroi.hpMax;
+    }
+
+    adicionarHistorico(`✏️ ${heroi.nome} foi editado.`);
+  } else {
+    // CRIAÇÃO
+    partyHerois.push({
+      id:     "h_" + Date.now(),
+      nome,
+      classe: document.getElementById("heroi-classe").value.trim() || "Aventureiro",
+      nivel:  document.getElementById("heroi-nivel").value || "1",
+      hpMax:  parseInt(document.getElementById("heroi-hp").value) || 10,
+      ca:     parseInt(document.getElementById("heroi-ca").value) || 10,
+      cor:    _corSelecionada,
+      imagem: ""
+    });
+  }
 
   fecharModalHeroi();
   salvarESincronizar();
@@ -431,8 +470,125 @@ function marcarMorto(id) {
 }
 
 /* ==========================================================================
-   5b. MODAL DE DANO / CURA
+   DANO EM ÁREA
    ========================================================================== */
+function abrirModalArea() {
+  if (listaDeIniciativa.length === 0) {
+    alert("Não há combatentes no combate!");
+    return;
+  }
+
+  // Reseta campos
+  document.getElementById("area-qtd").value          = "1";
+  document.getElementById("area-tipo").value         = "8";
+  document.getElementById("area-modificador").value  = "0";
+  document.getElementById("area-valor-manual").value = "";
+  document.getElementById("area-resultado").textContent  = "—";
+  document.getElementById("area-resultado").className    = "modal-dano-valor modal-dano-valor--dano";
+  document.getElementById("area-formula").textContent    = "";
+
+  renderizarAlvosArea();
+  document.getElementById("modal-area").classList.remove("oculto");
+}
+
+function fecharModalArea() {
+  document.getElementById("modal-area").classList.add("oculto");
+}
+
+function renderizarAlvosArea() {
+  const lista = document.getElementById("area-alvos-lista");
+  lista.innerHTML = "";
+
+  listaDeIniciativa.forEach(c => {
+    const row = document.createElement("label");
+    row.className = "area-alvo-row" + (c.morto ? " area-alvo-morto" : "");
+
+    const cb = document.createElement("input");
+    cb.type    = "checkbox";
+    cb.value   = c.id;
+    cb.checked = !c.morto; // mortos vêm desmarcados por padrão
+    cb.className = "area-alvo-cb";
+
+    const corHeroi = (() => {
+      if (!c.idHeroi) return null;
+      const h   = partyHerois.find(h => h.id === c.idHeroi);
+      const cor = h?.cor ? CORES_HEROI.find(x => x.id === h.cor) : null;
+      return cor?.hex ?? null;
+    })();
+
+    const info = document.createElement("span");
+    info.className = "area-alvo-info";
+    if (corHeroi) info.style.borderLeftColor = corHeroi;
+    info.innerHTML = `<span class="area-alvo-nome">${c.nome}</span><span class="area-alvo-hp">❤️ ${c.hpAtual}/${c.hpMax}</span>`;
+
+    row.appendChild(cb);
+    row.appendChild(info);
+    lista.appendChild(row);
+  });
+}
+
+function rolarDadoArea() {
+  const qtd  = parseInt(document.getElementById("area-qtd").value)         || 1;
+  const lados = parseInt(document.getElementById("area-tipo").value)        || 8;
+  const mod   = parseInt(document.getElementById("area-modificador").value) || 0;
+
+  let soma = 0;
+  const rolagens = [];
+  for (let i = 0; i < qtd; i++) {
+    const r = Math.floor(Math.random() * lados) + 1;
+    soma += r; rolagens.push(r);
+  }
+  const total = Math.max(0, soma + mod);
+
+  document.getElementById("area-resultado").textContent = total;
+  const sinal = mod >= 0 ? "+" : "";
+  document.getElementById("area-formula").textContent = `(${qtd}d${lados}: [${rolagens.join(", ")}] ${sinal}${mod})`;
+  document.getElementById("area-valor-manual").value  = total;
+}
+
+function selecionarTodosArea(sel) {
+  document.querySelectorAll(".area-alvo-cb").forEach(cb => cb.checked = sel);
+}
+
+function confirmarDanoArea() {
+  const valor = parseInt(document.getElementById("area-valor-manual").value);
+  if (isNaN(valor) || valor < 0) {
+    document.getElementById("area-valor-manual").focus(); return;
+  }
+
+  const selecionados = [...document.querySelectorAll(".area-alvo-cb:checked")].map(cb => cb.value);
+  if (selecionados.length === 0) {
+    alert("Selecione pelo menos um alvo!"); return;
+  }
+
+  const nomes = [];
+  selecionados.forEach(id => {
+    const c = listaDeIniciativa.find(x => x.id == id);
+    if (!c) return;
+    const antes = c.hpAtual;
+    c.hpAtual = Math.max(0, c.hpAtual - valor);
+    nomes.push(`${c.nome} (${antes}→${c.hpAtual})`);
+    if (c.hpAtual === 0 && !c.morto) processarHPZero(c);
+  });
+
+  adicionarHistorico(`💥 Dano em área (${valor}): ${nomes.join(", ")}`, "falha");
+  fecharModalArea();
+  salvarESincronizar();
+}
+
+
+/** Processa HP zerado: monstro morre, herói fica nocauteado */
+function processarHPZero(criatura) {
+  const ehHeroi = !!criatura.idHeroi;
+  if (ehHeroi) {
+    criatura.nocauteado = true;
+    adicionarHistorico(`😵 ${criatura.nome} está nocauteado! (0 HP)`, "falha");
+  } else {
+    criatura.morto = true;
+    adicionarHistorico(`☠️ ${criatura.nome} morreu!`, "falha");
+  }
+}
+
 let _modalDanoCuraId   = null;
 let _modalDanoCuraTipo = null;
 
@@ -509,12 +665,15 @@ function confirmarDanoCura() {
   if (_modalDanoCuraTipo === "dano") {
     criatura.hpAtual = Math.max(0, criatura.hpAtual - valor);
     adicionarHistorico(`⚔️ ${criatura.nome} recebeu ${valor} de dano (${hpAntes} → ${criatura.hpAtual} HP)`, "falha");
-    if (criatura.hpAtual === 0 && !criatura.morto) {
-      adicionarHistorico(`💀 ${criatura.nome} chegou a 0 HP!`, "falha");
-    }
+    if (criatura.hpAtual === 0 && !criatura.morto) processarHPZero(criatura);
   } else {
     criatura.hpAtual = Math.min(criatura.hpMax, criatura.hpAtual + valor);
     adicionarHistorico(`💊 ${criatura.nome} recuperou ${valor} de HP (${hpAntes} → ${criatura.hpAtual} HP)`, "sucesso");
+    // Se estava nocauteado e recuperou HP, remove nocaute
+    if (criatura.nocauteado && criatura.hpAtual > 0) {
+      criatura.nocauteado = false;
+      adicionarHistorico(`💪 ${criatura.nome} se recuperou do nocaute!`, "sucesso");
+    }
   }
 
   fecharModalDanoCura();
@@ -603,20 +762,29 @@ function renderizarEfeitos() {
 
 function proximoTurno() {
   if (listaDeIniciativa.length === 0) return;
-  turnoAtivo++;
-  if (turnoAtivo >= listaDeIniciativa.length) {
-    turnoAtivo = 0;
-    rodadaAtual++;
-    adicionarHistorico(`🔄 Rodada ${rodadaAtual} iniciada!`);
-    decrementarCondicoes();
-    // Decrementa efeitos temporários avulsos
-    efeitosTemporarios = efeitosTemporarios.map(e => ({ ...e, rodadas: e.rodadas - 1 }));
-    efeitosTemporarios.forEach(e => {
-      if (e.rodadas <= 0) adicionarHistorico(`⏰ Efeito expirado: "${e.nome}"`, "falha");
-      else if (e.rodadas === 1) adicionarHistorico(`⚠️ "${e.nome}" expira na próxima rodada!`);
-    });
-    efeitosTemporarios = efeitosTemporarios.filter(e => e.rodadas > 0);
-  }
+
+  const vivos = listaDeIniciativa.filter(c => !c.morto);
+  if (vivos.length === 0) return;
+
+  // Avança e pula mortos
+  let tentativas = 0;
+  do {
+    turnoAtivo++;
+    if (turnoAtivo >= listaDeIniciativa.length) {
+      turnoAtivo = 0;
+      rodadaAtual++;
+      adicionarHistorico(`🔄 Rodada ${rodadaAtual} iniciada!`);
+      decrementarCondicoes();
+      efeitosTemporarios = efeitosTemporarios.map(e => ({ ...e, rodadas: e.rodadas - 1 }));
+      efeitosTemporarios.forEach(e => {
+        if (e.rodadas <= 0) adicionarHistorico(`⏰ Efeito expirado: "${e.nome}"`, "falha");
+        else if (e.rodadas === 1) adicionarHistorico(`⚠️ "${e.nome}" expira na próxima rodada!`);
+      });
+      efeitosTemporarios = efeitosTemporarios.filter(e => e.rodadas > 0);
+    }
+    tentativas++;
+  } while (listaDeIniciativa[turnoAtivo]?.morto && tentativas < listaDeIniciativa.length);
+
   salvarESincronizar();
 }
 
@@ -763,8 +931,9 @@ function atualizarIniciativa() {
 
     const item = document.createElement("div");
     item.className = "item-iniciativa"
-      + (ativo           ? " item-iniciativa--ativo" : "")
-      + (personagem.morto ? " item-iniciativa--morto" : "");
+      + (ativo                                        ? " item-iniciativa--ativo"      : "")
+      + (personagem.morto                             ? " item-iniciativa--morto"      : "")
+      + (personagem.nocauteado && !personagem.morto   ? " item-iniciativa--nocauteado" : "");
 
     // Cor do herói na borda esquerda
     if (personagem.idHeroi) {
@@ -779,7 +948,10 @@ function atualizarIniciativa() {
 
     const nome = document.createElement("span");
     nome.className = "item-iniciativa-nome";
-    nome.textContent = (ativo ? "▶ " : "") + (personagem.morto ? "☠️ " : "") + personagem.nome;
+    nome.textContent = (ativo ? "▶ " : "")
+      + (personagem.morto      ? "☠️ " : "")
+      + (personagem.nocauteado && !personagem.morto ? "😵 " : "")
+      + personagem.nome;
 
     const btnRemover = document.createElement("button");
     btnRemover.textContent = "✕";
@@ -1012,8 +1184,15 @@ function renderizarStatusGrupo() {
     btnRemover.title       = "Remover herói";
     btnRemover.addEventListener("click", () => removerHeroi(heroi.id));
 
+    const btnEditar = document.createElement("button");
+    btnEditar.textContent = "✏️";
+    btnEditar.className   = "btn-editar-heroi";
+    btnEditar.title       = "Editar herói";
+    btnEditar.addEventListener("click", () => abrirModalHeroi(heroi.id));
+
     topo.appendChild(nomeSpan);
     topo.appendChild(iniSpan);
+    topo.appendChild(btnEditar);
     topo.appendChild(btnRemover);
 
     // Subtítulo
@@ -1285,6 +1464,15 @@ window.onload = () => {
     document.querySelectorAll(".condicao-popover:not(.oculto)")
       .forEach(p => p.classList.add("oculto"));
   });
+
+  // Modal de dano em área
+  document.getElementById("btn-abrir-area").addEventListener("click", abrirModalArea);
+  document.getElementById("fechar-area").addEventListener("click", fecharModalArea);
+  document.getElementById("btn-rolar-area").addEventListener("click", rolarDadoArea);
+  document.getElementById("btn-confirmar-area").addEventListener("click", confirmarDanoArea);
+  document.getElementById("btn-area-todos").addEventListener("click", () => selecionarTodosArea(true));
+  document.getElementById("btn-area-nenhum").addEventListener("click", () => selecionarTodosArea(false));
+  window.addEventListener("click", (e) => { if (e.target === document.getElementById("modal-area")) fecharModalArea(); });
 
   // Modal de condição/duração
   document.getElementById("fechar-condicao-duracao").addEventListener("click", fecharModalCondicaoDuracao);
