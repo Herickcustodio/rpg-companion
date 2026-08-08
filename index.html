@@ -77,6 +77,9 @@
           <label for="heroi-ca">Classe de Armadura (CA)</label>
           <input type="number" id="heroi-ca" value="10" min="1" />
 
+          <label>Cor do Herói</label>
+          <div id="heroi-cores" class="heroi-cores"></div>
+
           <button id="btn-confirmar-heroi" class="btn-confirmar">Criar Herói</button>
         </div>
       </div>
@@ -180,6 +183,20 @@
       </div>
     </div>
 
+    <!-- Modal Duração de Condição -->
+    <div id="modal-condicao-duracao" class="modal oculto">
+      <div class="modal-conteudo modal-conteudo--pequeno">
+        <span class="fechar-modal" id="fechar-condicao-duracao">&times;</span>
+        <h2 id="modal-condicao-titulo">Condição</h2>
+        <div class="form-heroi">
+          <label for="condicao-rodadas">Duração em rodadas</label>
+          <input type="number" id="condicao-rodadas" value="1" min="1" placeholder="Rodadas..." />
+          <p class="condicao-duracao-dica">Deixe em branco para duração indefinida (sem contagem).</p>
+          <button id="btn-confirmar-condicao" class="btn-confirmar">Aplicar Condição</button>
+        </div>
+      </div>
+    </div>
+
   </header>
 
   <main class="dashboard">
@@ -222,11 +239,35 @@
 
     <section class="painel turno">
       <h2>Controle de Turno</h2>
+
+      <!-- Rodada atual -->
+      <div class="turno-rodada-wrap">
+        <span class="turno-rodada-label">Rodada</span>
+        <span id="turno-rodada-num" class="turno-rodada-num">1</span>
+      </div>
+
+      <!-- Botões anterior/próximo -->
       <div class="turno-controles">
         <button id="btn-turno-anterior" class="btn-turno">◀ Anterior</button>
         <button id="btn-proximo-turno"  class="btn-turno btn-turno--proximo">Próximo ▶</button>
       </div>
-      <p class="turno-dica">Avance o turno para destacar o combatente ativo na iniciativa.</p>
+
+      <!-- Combatente ativo em destaque -->
+      <div id="turno-ativo-card" class="turno-ativo-card oculto">
+        <div class="turno-ativo-nome" id="turno-ativo-nome">—</div>
+        <div class="turno-ativo-detalhes" id="turno-ativo-detalhes"></div>
+        <div class="barra-hp-wrap" style="margin-top:6px;">
+          <div id="turno-ativo-barra" class="barra-hp-fill" style="width:100%;background:#2ecc71;"></div>
+        </div>
+      </div>
+      <div id="turno-vazio-msg" class="turno-dica">Adicione combatentes e avance o turno.</div>
+
+      <!-- Condições ativas de todos os combatentes -->
+      <div class="turno-efeitos-header">
+        <span class="turno-efeitos-titulo">🔖 Condições Ativas</span>
+      </div>
+      <div id="turno-efeitos-lista" class="turno-efeitos-lista"></div>
+
     </section>
 
     <section class="painel historico">

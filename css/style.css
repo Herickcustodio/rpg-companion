@@ -129,6 +129,7 @@ body {
 .turno {
   grid-column: 4;
   grid-row: 1;
+  overflow-y: auto;
 }
 
 .historico {
@@ -483,6 +484,11 @@ body {
   display: block;
 }
 
+.item-ini-ca {
+  color: #5aabff;
+  font-size: 0.95em;
+}
+
 /* Barra de HP */
 .barra-hp-wrap {
   height: 5px;
@@ -657,8 +663,107 @@ body {
 }
 
 /* ==========================================================================
-   5b. CONTROLE DE TURNO
+   5b. CONTROLE DE TURNO — PAINEL
    ========================================================================== */
+.turno-rodada-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: #1e1e1e;
+  border: 1px solid #333;
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-bottom: 8px;
+}
+
+.turno-rodada-label {
+  font-size: 12px;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.turno-rodada-num {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #5aabff;
+  line-height: 1;
+  min-width: 32px;
+  text-align: center;
+}
+
+/* Card do combatente ativo */
+.turno-ativo-card {
+  background: #1a2535;
+  border: 1px solid #064D9F;
+  border-left: 4px solid #5aabff;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  animation: pulso-ativo 2s ease-in-out infinite;
+}
+
+@keyframes pulso-ativo {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(90, 171, 255, 0); }
+  50%       { box-shadow: 0 0 8px 2px rgba(90, 171, 255, 0.2); }
+}
+
+.turno-ativo-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.turno-ativo-badge {
+  font-size: 10px;
+  background: #064D9F;
+  color: #fff;
+  border-radius: 4px;
+  padding: 2px 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+
+.turno-ativo-nome {
+  font-size: 15px;
+  font-weight: bold;
+  color: #5aabff;
+  margin-bottom: 6px;
+}
+
+.turno-ativo-detalhes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  font-size: 12px;
+  color: #aaa;
+  margin-bottom: 2px;
+}
+
+.turno-ativo-hp  { color: #ff6b6b; font-weight: bold; }
+.turno-ativo-ini { color: #28a745; font-weight: bold; }
+
+.turno-ativo-condicoes {
+  width: 100%;
+  margin-top: 6px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.turno-ativo-cond-tag {
+  font-size: 11px;
+  background: #2e2210;
+  border: 1px solid #f39c12;
+  border-radius: 4px;
+  padding: 1px 6px;
+  color: #f5c97a;
+}
+
+
 .turno-controles {
   display: flex;
   gap: 8px;
@@ -694,8 +799,175 @@ body {
 .turno-dica {
   font-size: 11px;
   color: #555;
-  margin-top: 10px;
+  margin-top: 4px;
   text-align: center;
+}
+
+/* Rastreador de efeitos */
+.turno-efeitos-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 10px;
+  margin-bottom: 6px;
+  padding-top: 8px;
+  border-top: 1px solid #333;
+}
+
+.turno-efeitos-titulo {
+  font-size: 12px;
+  color: #888;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.btn-add-efeito {
+  background: none;
+  border: 1px dashed #555;
+  border-radius: 4px;
+  color: #888;
+  font-size: 11px;
+  padding: 3px 8px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.btn-add-efeito:hover {
+  border-color: #5aabff;
+  color: #5aabff;
+}
+
+.turno-efeitos-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.efeitos-vazio {
+  font-size: 11px;
+  color: #555;
+  text-align: center;
+  margin: 4px 0;
+}
+
+.efeito-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #1e1e1e;
+  border: 1px solid #333;
+  border-left: 3px solid #5aabff;
+  border-radius: 5px;
+  padding: 5px 8px;
+}
+
+.efeito-item--urgente {
+  border-left-color: #f39c12;
+  background: #221e10;
+  animation: piscar-urgente 1s ease-in-out infinite;
+}
+
+@keyframes piscar-urgente {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.6; }
+}
+
+.efeito-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.efeito-nome {
+  font-size: 13px;
+  color: #eee;
+  font-weight: bold;
+}
+
+.efeito-rodadas {
+  font-size: 11px;
+  color: #5aabff;
+}
+
+.efeito-item--urgente .efeito-rodadas {
+  color: #f39c12;
+  font-weight: bold;
+}
+
+.efeito-btn-del {
+  background: none;
+  border: none;
+  color: #555;
+  cursor: pointer;
+  font-size: 12px;
+  padding: 2px 4px;
+  transition: color 0.15s;
+}
+
+.efeito-btn-del:hover {
+  color: #ff6b6b;
+}
+
+/* Form inline de novo efeito */
+.turno-efeito-form {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin-top: 6px;
+  flex-wrap: wrap;
+}
+
+.efeito-input {
+  background: #1e1e1e;
+  color: #fff;
+  border: 1px solid #555;
+  border-radius: 4px;
+  padding: 5px 8px;
+  font-size: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.efeito-input--num {
+  flex: 0 0 60px;
+  text-align: center;
+}
+
+.efeito-input:focus {
+  outline: none;
+  border-color: #064D9F;
+}
+
+.btn-confirmar-efeito {
+  background: #064D9F;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  padding: 5px 10px;
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 14px;
+  transition: background 0.15s;
+}
+
+.btn-confirmar-efeito:hover {
+  background: #0a65cc;
+}
+
+.btn-cancelar-efeito {
+  background: #2a2a2a;
+  color: #888;
+  border: 1px solid #444;
+  border-radius: 4px;
+  padding: 5px 10px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.15s;
+}
+
+.btn-cancelar-efeito:hover {
+  background: #444;
+  color: #fff;
 }
 
 /* ==========================================================================
@@ -1276,7 +1548,44 @@ body {
   color: #e63946;
 }
 
-.ini-formula {
-  font-size: 13px;
-  color: #888;
+.heroi-cores {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.cor-heroi-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  cursor: pointer;
+  transition: transform 0.15s, border-color 0.15s, opacity 0.15s;
+  flex-shrink: 0;
+}
+
+.cor-heroi-btn:hover:not(:disabled) {
+  transform: scale(1.2);
+}
+
+.cor-heroi-btn--selecionada {
+  border-color: #fff;
+  transform: scale(1.2);
+}
+
+.cor-heroi-btn--usada {
+  opacity: 0.25;
+  cursor: not-allowed;
+}
+
+.modal-conteudo--pequeno {
+  max-width: 340px;
+}
+
+.condicao-duracao-dica {
+  font-size: 11px;
+  color: #666;
+  margin: 0;
+  font-style: italic;
 }

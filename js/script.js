@@ -1,12 +1,52 @@
 /* ==========================================================================
    1. ESTADO GLOBAL
    ========================================================================== */
-let listaDeIniciativa = JSON.parse(localStorage.getItem("iniciativaRPG")) || [];
-let partyHerois       = JSON.parse(localStorage.getItem("partyHeroisRPG")) || [];
-let turnoAtivo        = parseInt(localStorage.getItem("turnoAtivoRPG"))    || 0;
-let monstrosCustom    = JSON.parse(localStorage.getItem("monstrosCustomRPG")) || [];
+let listaDeIniciativa  = JSON.parse(localStorage.getItem("iniciativaRPG"))      || [];
+let partyHerois        = JSON.parse(localStorage.getItem("partyHeroisRPG"))     || [];
+let turnoAtivo         = parseInt(localStorage.getItem("turnoAtivoRPG"))        || 0;
+let rodadaAtual        = parseInt(localStorage.getItem("rodadaAtualRPG"))       || 1;
+let monstrosCustom     = JSON.parse(localStorage.getItem("monstrosCustomRPG"))  || [];
+let efeitosTemporarios = JSON.parse(localStorage.getItem("efeitosRPG"))         || [];
 
 // coletaneaMonstros é carregada pelo monstros.js
+
+const CORES_HEROI = [
+  { id: "azul",     hex: "#3b82f6", label: "Azul"     },
+  { id: "verde",    hex: "#22c55e", label: "Verde"     },
+  { id: "amarelo",  hex: "#eab308", label: "Amarelo"   },
+  { id: "laranja",  hex: "#f97316", label: "Laranja"   },
+  { id: "vermelho", hex: "#ef4444", label: "Vermelho"  },
+  { id: "roxo",     hex: "#a855f7", label: "Roxo"      },
+  { id: "rosa",     hex: "#ec4899", label: "Rosa"      },
+  { id: "ciano",    hex: "#06b6d4", label: "Ciano"     },
+  { id: "branco",   hex: "#e5e7eb", label: "Branco"    },
+  { id: "ouro",     hex: "#d97706", label: "Ouro"      },
+];
+
+let _corSelecionada = null;
+
+function renderizarSeletorCores() {
+  const container = document.getElementById("heroi-cores");
+  if (!container) return;
+  container.innerHTML = "";
+
+  const coresUsadas = partyHerois.map(h => h.cor).filter(Boolean);
+
+  CORES_HEROI.forEach(cor => {
+    const usada = coresUsadas.includes(cor.id);
+    const btn   = document.createElement("button");
+    btn.type      = "button";
+    btn.title     = usada ? `${cor.label} (em uso)` : cor.label;
+    btn.className = "cor-heroi-btn" + (usada ? " cor-heroi-btn--usada" : "") + (_corSelecionada === cor.id ? " cor-heroi-btn--selecionada" : "");
+    btn.style.background = cor.hex;
+    btn.disabled = usada;
+    btn.addEventListener("click", () => {
+      _corSelecionada = cor.id;
+      renderizarSeletorCores();
+    });
+    container.appendChild(btn);
+  });
+}
 
 const CONDICOES = [
   { id: "agarrado",      emoji: "🤝", label: "Agarrado",      descricao: "Deslocamento vira 0. O efeito termina se quem agarrou ficar incapacitado ou o alvo escapar mecanicamente."        },
@@ -39,9 +79,12 @@ function salvarHeroisNoCofre() {
 function salvarESincronizar() {
   salvarIniciativaNoCofre();
   salvarHeroisNoCofre();
-  localStorage.setItem("turnoAtivoRPG", turnoAtivo);
+  localStorage.setItem("turnoAtivoRPG",  turnoAtivo);
+  localStorage.setItem("rodadaAtualRPG", rodadaAtual);
+  localStorage.setItem("efeitosRPG",     JSON.stringify(efeitosTemporarios));
   atualizarIniciativa();
   renderizarStatusGrupo();
+  atualizarPainelTurno();
 }
 
 /* ==========================================================================
@@ -53,6 +96,11 @@ function abrirModalHeroi() {
   document.getElementById("heroi-nivel").value  = "1";
   document.getElementById("heroi-hp").value     = "10";
   document.getElementById("heroi-ca").value     = "10";
+  // Seleciona automaticamente a primeira cor disponível
+  const coresUsadas = partyHerois.map(h => h.cor).filter(Boolean);
+  const primeiraLivre = CORES_HEROI.find(c => !coresUsadas.includes(c.id));
+  _corSelecionada = primeiraLivre ? primeiraLivre.id : null;
+  renderizarSeletorCores();
   document.getElementById("modal-heroi").classList.remove("oculto");
   document.getElementById("heroi-nome").focus();
 }
@@ -72,6 +120,7 @@ function confirmarNovoHeroi() {
     nivel:  document.getElementById("heroi-nivel").value || "1",
     hpMax:  parseInt(document.getElementById("heroi-hp").value) || 10,
     ca:     parseInt(document.getElementById("heroi-ca").value) || 10,
+    cor:    _corSelecionada,
     imagem: ""
   });
 
@@ -207,6 +256,7 @@ function confirmarIniciativaModal() {
 
     const entradaAnterior = listaDeIniciativa.find(c => c.idHeroi === ctx.idHeroi);
     const condicoes = entradaAnterior ? entradaAnterior.condicoes : [];
+    const jaEstava  = !!entradaAnterior;
 
     listaDeIniciativa = listaDeIniciativa.filter(c => c.idHeroi !== ctx.idHeroi);
     listaDeIniciativa.push({
@@ -219,8 +269,12 @@ function confirmarIniciativaModal() {
       condicoes
     });
 
+    const caTxt = heroiBase.ca ? ` | CA: ${heroiBase.ca}` : "";
+    if (jaEstava) adicionarHistorico(`🔄 ${heroiBase.nome} atualizou iniciativa para ${valor}`);
+    else          adicionarHistorico(`🦸 ${heroiBase.nome} entrou no combate! (Ini: ${valor} | HP: ${heroiBase.hpMax}${caTxt})`);
+
   } else if (ctx.tipo === "monstro") {
-    listaDeIniciativa.push({
+    const entradaMonstro = {
       id:        Date.now(),
       nomeBase:  ctx.monstro.nome,
       nome:      ctx.nomeCompleto,
@@ -228,7 +282,14 @@ function confirmarIniciativaModal() {
       hpAtual:   ctx.monstro.vidaMax,
       hpMax:     ctx.monstro.vidaMax,
       condicoes: []
-    });
+    };
+    if (ctx.monstro.custom && ctx.monstro.id) {
+      entradaMonstro.idMonstroCustom = ctx.monstro.id;
+    }
+    listaDeIniciativa.push(entradaMonstro);
+
+    const caTxt = ctx.monstro.ca ? ` | CA: ${ctx.monstro.ca}` : "";
+    adicionarHistorico(`⚔️ ${ctx.nomeCompleto} entrou no combate! (Ini: ${valor} | HP: ${ctx.monstro.vidaMax}${caTxt})`);
   }
 
   fecharModalIniciativa();
@@ -265,24 +326,91 @@ function sincronizarVidaTudo(idHeroi, novoValor) {
   salvarESincronizar();
 }
 
-/** Alterna uma condição em um combatente */
-function toggleCondicao(id, condicaoId) {
-  const criatura = listaDeIniciativa.find(c => c.id === id);
+/* ==========================================================================
+   MODAL DE DURAÇÃO DE CONDIÇÃO
+   ========================================================================== */
+let _condicaoCtx = null; // { criaturaId, condicaoId }
+
+function abrirModalCondicaoDuracao(criaturaId, condicaoId) {
+  const criatura = listaDeIniciativa.find(c => c.id === criaturaId);
+  if (!criatura) return;
+
+  const cond     = CONDICOES.find(c => c.id === condicaoId);
+  const jaAtiva  = (criatura.condicoes || []).find(c => c.id === condicaoId);
+
+  // Se já está ativa, remove direto sem abrir modal
+  if (jaAtiva) {
+    removerCondicao(criaturaId, condicaoId);
+    return;
+  }
+
+  _condicaoCtx = { criaturaId, condicaoId };
+  document.getElementById("modal-condicao-titulo").textContent = `${cond.emoji} ${cond.label} — ${criatura.nome}`;
+  document.getElementById("condicao-rodadas").value = "1";
+  document.getElementById("modal-condicao-duracao").classList.remove("oculto");
+  document.getElementById("condicao-rodadas").focus();
+}
+
+function fecharModalCondicaoDuracao() {
+  document.getElementById("modal-condicao-duracao").classList.add("oculto");
+  _condicaoCtx = null;
+}
+
+function confirmarCondicao() {
+  if (!_condicaoCtx) return;
+  const { criaturaId, condicaoId } = _condicaoCtx;
+  const criatura = listaDeIniciativa.find(c => c.id === criaturaId);
   if (!criatura) return;
   if (!criatura.condicoes) criatura.condicoes = [];
 
-  const cond = CONDICOES.find(c => c.id === condicaoId);
-  const idx  = criatura.condicoes.indexOf(condicaoId);
+  const rodadasVal = document.getElementById("condicao-rodadas").value.trim();
+  const rodadas    = rodadasVal !== "" ? parseInt(rodadasVal) || 1 : null; // null = indefinido
+  const cond       = CONDICOES.find(c => c.id === condicaoId);
 
-  if (idx === -1) {
-    criatura.condicoes.push(condicaoId);
-    adicionarHistorico(`${cond.emoji} ${criatura.nome} recebeu a condição: ${cond.label}`);
-  } else {
-    criatura.condicoes.splice(idx, 1);
-    adicionarHistorico(`✅ ${criatura.nome} se recuperou de: ${cond.label}`);
-  }
+  criatura.condicoes.push({ id: condicaoId, rodadas });
 
+  const duracaoTxt = rodadas ? `${rodadas} rodada${rodadas > 1 ? "s" : ""}` : "indefinido";
+  adicionarHistorico(`${cond.emoji} ${criatura.nome} recebeu: ${cond.label} (${duracaoTxt})`);
+
+  fecharModalCondicaoDuracao();
   salvarESincronizar();
+}
+
+function removerCondicao(criaturaId, condicaoId) {
+  const criatura = listaDeIniciativa.find(c => c.id === criaturaId);
+  if (!criatura) return;
+  const cond = CONDICOES.find(c => c.id === condicaoId);
+  criatura.condicoes = (criatura.condicoes || []).filter(c => c.id !== condicaoId);
+  adicionarHistorico(`✅ ${criatura.nome} se recuperou de: ${cond.label}`);
+  salvarESincronizar();
+}
+
+/** Decrementa rodadas de condições ao virar rodada */
+function decrementarCondicoes() {
+  listaDeIniciativa.forEach(criatura => {
+    if (!criatura.condicoes) return;
+    const expiradas = [];
+    criatura.condicoes = criatura.condicoes.map(c => {
+      if (c.rodadas === null) return c; // indefinido, não decrementa
+      const novas = c.rodadas - 1;
+      if (novas <= 0) { expiradas.push(c.id); return null; }
+      if (novas === 1) {
+        const cond = CONDICOES.find(x => x.id === c.id);
+        adicionarHistorico(`⚠️ ${criatura.nome}: "${cond?.label}" expira na próxima rodada!`);
+      }
+      return { ...c, rodadas: novas };
+    }).filter(Boolean);
+
+    expiradas.forEach(id => {
+      const cond = CONDICOES.find(x => x.id === id);
+      adicionarHistorico(`⏰ ${criatura.nome}: condição "${cond?.label}" expirou!`, "falha");
+    });
+  });
+}
+
+/** Alterna uma condição — agora abre modal para definir duração */
+function toggleCondicao(id, condicaoId) {
+  abrirModalCondicaoDuracao(id, condicaoId);
 }
 
 /** Alterna o estado de morte do combatente sem removê-lo da lista */
@@ -400,11 +528,95 @@ function mortoViaModal() {
 }
 
 /* ==========================================================================
-   5. CONTROLE DE TURNO
+   5b. RASTREADOR DE EFEITOS TEMPORÁRIOS
    ========================================================================== */
+function abrirFormEfeito() {
+  document.getElementById("turno-efeito-form").classList.remove("oculto");
+  document.getElementById("efeito-nome").value    = "";
+  document.getElementById("efeito-rodadas").value = "1";
+  document.getElementById("efeito-nome").focus();
+}
+
+function fecharFormEfeito() {
+  document.getElementById("turno-efeito-form").classList.add("oculto");
+}
+
+function confirmarEfeito() {
+  const nome    = document.getElementById("efeito-nome").value.trim();
+  const rodadas = parseInt(document.getElementById("efeito-rodadas").value) || 1;
+  if (!nome) { document.getElementById("efeito-nome").focus(); return; }
+
+  efeitosTemporarios.push({ id: "ef_" + Date.now(), nome, rodadas });
+  adicionarHistorico(`⏳ Efeito adicionado: "${nome}" (${rodadas} rodada${rodadas > 1 ? "s" : ""})`);
+  fecharFormEfeito();
+  salvarESincronizar();
+}
+
+function removerEfeito(id) {
+  const ef = efeitosTemporarios.find(e => e.id === id);
+  if (ef) adicionarHistorico(`🗑️ Efeito removido: "${ef.nome}"`);
+  efeitosTemporarios = efeitosTemporarios.filter(e => e.id !== id);
+  salvarESincronizar();
+}
+
+function renderizarEfeitos() {
+  const lista = document.getElementById("turno-efeitos-lista");
+  if (!lista) return;
+  lista.innerHTML = "";
+
+  if (efeitosTemporarios.length === 0) {
+    lista.innerHTML = `<p class="efeitos-vazio">Nenhum efeito ativo.</p>`;
+    return;
+  }
+
+  efeitosTemporarios.forEach(ef => {
+    const urgente = ef.rodadas === 1;
+    const item = document.createElement("div");
+    item.className = "efeito-item" + (urgente ? " efeito-item--urgente" : "");
+
+    const info = document.createElement("div");
+    info.className = "efeito-info";
+
+    const nome = document.createElement("span");
+    nome.className   = "efeito-nome";
+    nome.textContent = ef.nome;
+
+    const rodadas = document.createElement("span");
+    rodadas.className   = "efeito-rodadas";
+    rodadas.textContent = `${ef.rodadas} rodada${ef.rodadas > 1 ? "s" : ""}`;
+
+    info.appendChild(nome);
+    info.appendChild(rodadas);
+
+    const btnDel = document.createElement("button");
+    btnDel.textContent = "✕";
+    btnDel.className   = "efeito-btn-del";
+    btnDel.title       = "Remover efeito";
+    btnDel.addEventListener("click", () => removerEfeito(ef.id));
+
+    item.appendChild(info);
+    item.appendChild(btnDel);
+    lista.appendChild(item);
+  });
+}
+
+
 function proximoTurno() {
   if (listaDeIniciativa.length === 0) return;
-  turnoAtivo = (turnoAtivo + 1) % listaDeIniciativa.length;
+  turnoAtivo++;
+  if (turnoAtivo >= listaDeIniciativa.length) {
+    turnoAtivo = 0;
+    rodadaAtual++;
+    adicionarHistorico(`🔄 Rodada ${rodadaAtual} iniciada!`);
+    decrementarCondicoes();
+    // Decrementa efeitos temporários avulsos
+    efeitosTemporarios = efeitosTemporarios.map(e => ({ ...e, rodadas: e.rodadas - 1 }));
+    efeitosTemporarios.forEach(e => {
+      if (e.rodadas <= 0) adicionarHistorico(`⏰ Efeito expirado: "${e.nome}"`, "falha");
+      else if (e.rodadas === 1) adicionarHistorico(`⚠️ "${e.nome}" expira na próxima rodada!`);
+    });
+    efeitosTemporarios = efeitosTemporarios.filter(e => e.rodadas > 0);
+  }
   salvarESincronizar();
 }
 
@@ -412,6 +624,115 @@ function turnoAnterior() {
   if (listaDeIniciativa.length === 0) return;
   turnoAtivo = (turnoAtivo - 1 + listaDeIniciativa.length) % listaDeIniciativa.length;
   salvarESincronizar();
+}
+
+function atualizarPainelTurno() {
+  const numEl   = document.getElementById("turno-rodada-num");
+  const cardEl  = document.getElementById("turno-ativo-card");
+  const vazioEl = document.getElementById("turno-vazio-msg");
+  const nomeEl  = document.getElementById("turno-ativo-nome");
+  const detEl   = document.getElementById("turno-ativo-detalhes");
+  const barraEl = document.getElementById("turno-ativo-barra");
+
+  if (numEl) numEl.textContent = rodadaAtual;
+
+  if (listaDeIniciativa.length === 0) {
+    if (cardEl)  cardEl.classList.add("oculto");
+    if (vazioEl) vazioEl.style.display = "block";
+    renderizarCondicoesAtivas();
+    return;
+  }
+
+  if (cardEl)  cardEl.classList.remove("oculto");
+  if (vazioEl) vazioEl.style.display = "none";
+
+  const atual = listaDeIniciativa[turnoAtivo];
+  if (!atual) return;
+
+  // Aplica cor do herói na borda do card
+  if (atual.idHeroi) {
+    const h   = partyHerois.find(h => h.id === atual.idHeroi);
+    const cor = h?.cor ? CORES_HEROI.find(c => c.id === h.cor) : null;
+    cardEl.style.borderLeftColor = cor ? cor.hex : "#5aabff";
+    if (nomeEl) nomeEl.style.color = cor ? cor.hex : "#5aabff";
+  } else {
+    cardEl.style.borderLeftColor = "#5aabff";
+    if (nomeEl) nomeEl.style.color = "#5aabff";
+  }
+
+  if (nomeEl) nomeEl.textContent = `▶ ${atual.nome}`;
+
+  const pct = atual.hpMax > 0 ? Math.max(0, Math.min(100, (atual.hpAtual / atual.hpMax) * 100)) : 0;
+  const cor  = calcularCorHP(atual.hpAtual, atual.hpMax);
+  if (barraEl) { barraEl.style.width = pct + "%"; barraEl.style.background = cor; }
+
+  // Condições do combatente ativo no card
+  const condicoesTags = (atual.condicoes || [])
+    .map(c => CONDICOES.find(x => x.id === c.id))
+    .filter(Boolean)
+    .map(c => `<span class="turno-ativo-cond-tag" title="${c.descricao}">${c.emoji} ${c.label}</span>`)
+    .join("");
+
+  if (detEl) detEl.innerHTML = `
+    <span class="turno-ativo-hp">❤️ ${atual.hpAtual} / ${atual.hpMax} HP</span>
+    <span class="turno-ativo-ini">⚡ Ini: ${atual.valor}</span>
+    ${condicoesTags ? `<div class="turno-ativo-condicoes">${condicoesTags}</div>` : ""}
+  `;
+
+  renderizarCondicoesAtivas();
+}
+
+/** Lista todas as condições ativas de todos os combatentes no painel de turno */
+function renderizarCondicoesAtivas() {
+  const lista = document.getElementById("turno-efeitos-lista");
+  if (!lista) return;
+  lista.innerHTML = "";
+
+  // Coleta todas as condições com rodadas definidas de todos os combatentes
+  const todasCondicoes = [];
+  listaDeIniciativa.forEach(criatura => {
+    (criatura.condicoes || []).forEach(condObj => {
+      const cond = CONDICOES.find(c => c.id === condObj.id);
+      if (cond) todasCondicoes.push({ criatura, condObj, cond });
+    });
+  });
+
+  if (todasCondicoes.length === 0) {
+    lista.innerHTML = `<p class="efeitos-vazio">Nenhuma condição ativa.</p>`;
+    return;
+  }
+
+  todasCondicoes.forEach(({ criatura, condObj, cond }) => {
+    const urgente = condObj.rodadas === 1;
+    const item    = document.createElement("div");
+    item.className = "efeito-item" + (urgente ? " efeito-item--urgente" : "");
+
+    const info = document.createElement("div");
+    info.className = "efeito-info";
+
+    const nomeCond = document.createElement("span");
+    nomeCond.className   = "efeito-nome";
+    nomeCond.textContent = `${cond.emoji} ${cond.label}`;
+
+    const sub = document.createElement("span");
+    sub.className = "efeito-rodadas";
+    sub.textContent = condObj.rodadas !== null
+      ? `${criatura.nome} · ${condObj.rodadas} rodada${condObj.rodadas > 1 ? "s" : ""}`
+      : `${criatura.nome} · indefinido`;
+
+    info.appendChild(nomeCond);
+    info.appendChild(sub);
+
+    const btnDel = document.createElement("button");
+    btnDel.textContent = "✕";
+    btnDel.className   = "efeito-btn-del";
+    btnDel.title       = "Remover condição";
+    btnDel.addEventListener("click", () => removerCondicao(criatura.id, cond.id));
+
+    item.appendChild(info);
+    item.appendChild(btnDel);
+    lista.appendChild(item);
+  });
 }
 
 /* ==========================================================================
@@ -442,8 +763,15 @@ function atualizarIniciativa() {
 
     const item = document.createElement("div");
     item.className = "item-iniciativa"
-      + (ativo          ? " item-iniciativa--ativo" : "")
+      + (ativo           ? " item-iniciativa--ativo" : "")
       + (personagem.morto ? " item-iniciativa--morto" : "");
+
+    // Cor do herói na borda esquerda
+    if (personagem.idHeroi) {
+      const h   = partyHerois.find(h => h.id === personagem.idHeroi);
+      const cor = h?.cor ? CORES_HEROI.find(c => c.id === h.cor) : null;
+      if (cor) item.style.borderLeft = `4px solid ${cor.hex}`;
+    }
 
     // ── Cabeçalho: nome + botão remover
     const cabecalho = document.createElement("div");
@@ -463,9 +791,25 @@ function atualizarIniciativa() {
     cabecalho.appendChild(btnRemover);
 
     // ── Iniciativa
+    // Busca CA — herói tem no partyHerois, monstro tem no próprio objeto da lista
+    const caValor = (() => {
+      if (personagem.idHeroi) {
+        const h = partyHerois.find(h => h.id === personagem.idHeroi);
+        return h?.ca ?? null;
+      }
+      // Monstro custom: busca pelo id salvo no objeto
+      if (personagem.idMonstroCustom) {
+        const mc = monstrosCustom.find(m => m.id === personagem.idMonstroCustom);
+        if (mc) return mc.ca ?? null;
+      }
+      // Monstro oficial: busca pelo nomeBase
+      const m = coletaneaMonstros.find(m => m.nome === personagem.nomeBase);
+      return m?.ca ?? null;
+    })();
+
     const iniciativaSpan = document.createElement("span");
-    iniciativaSpan.className   = "item-iniciativa-valor";
-    iniciativaSpan.textContent = `Ini: ${personagem.valor}`;
+    iniciativaSpan.className = "item-iniciativa-valor";
+    iniciativaSpan.innerHTML = `Ini: ${personagem.valor}${caValor !== null ? ` &nbsp;·&nbsp; <span class="item-ini-ca">🛡️ CA ${caValor}</span>` : ""}`;
 
     // ── Barra de HP
     const barraWrap = document.createElement("div");
@@ -521,14 +865,15 @@ function atualizarIniciativa() {
     const divTagsAtivas = document.createElement("div");
     divTagsAtivas.className = "item-ini-tags-ativas";
 
-    condicoes.forEach(condId => {
-      const cond = CONDICOES.find(c => c.id === condId);
+    condicoes.forEach(condObj => {
+      const cond = CONDICOES.find(c => c.id === condObj.id);
       if (!cond) return;
       const tag = document.createElement("button");
-      tag.className   = "tag-ativa";
-      tag.textContent = `${cond.emoji} ${cond.label}`;
-      tag.title       = cond.descricao;
-      tag.addEventListener("click", () => toggleCondicao(personagem.id, cond.id));
+      tag.className = "tag-ativa";
+      const duracaoTxt = condObj.rodadas !== null ? ` (${condObj.rodadas}🔄)` : "";
+      tag.textContent  = `${cond.emoji} ${cond.label}${duracaoTxt}`;
+      tag.title        = `${cond.descricao}\nClique para remover.`;
+      tag.addEventListener("click", () => removerCondicao(personagem.id, cond.id));
       divTagsAtivas.appendChild(tag);
     });
 
@@ -545,13 +890,14 @@ function atualizarIniciativa() {
     document.body.appendChild(popover);
 
     CONDICOES.forEach(cond => {
-      const ativa = condicoes.includes(cond.id);
+      const ativa = condicoes.some(c => c.id === cond.id);
       const opcao = document.createElement("button");
-      opcao.className   = "condicao-opcao" + (ativa ? " condicao-opcao--ativa" : "");
-      opcao.title       = cond.descricao;
-      opcao.innerHTML   = `<span class="cond-emoji">${cond.emoji}</span><span class="cond-label">${cond.label}</span>`;
+      opcao.className = "condicao-opcao" + (ativa ? " condicao-opcao--ativa" : "");
+      opcao.title     = cond.descricao;
+      opcao.innerHTML = `<span class="cond-emoji">${cond.emoji}</span><span class="cond-label">${cond.label}</span>`;
       opcao.addEventListener("click", (e) => {
         e.stopPropagation();
+        popover.classList.add("oculto");
         toggleCondicao(personagem.id, cond.id);
       });
       popover.appendChild(opcao);
@@ -559,7 +905,6 @@ function atualizarIniciativa() {
 
     btnAbrirCond.addEventListener("click", (e) => {
       e.stopPropagation();
-      // Fecha todos os outros popovers abertos
       document.querySelectorAll(".condicao-popover:not(.oculto)").forEach(p => {
         if (p !== popover) p.classList.add("oculto");
       });
@@ -644,6 +989,10 @@ function renderizarStatusGrupo() {
 
     const card = document.createElement("div");
     card.className = "card-heroi";
+    if (heroi.cor) {
+      const cor = CORES_HEROI.find(c => c.id === heroi.cor);
+      if (cor) card.style.borderLeftColor = cor.hex;
+    }
 
     // Topo: nome + iniciativa + botão remover
     const topo = document.createElement("div");
@@ -816,8 +1165,10 @@ function renderizarColetanea(filtro = "") {
    ========================================================================== */
 function limparIniciativa() {
   if (!confirm("Deseja realmente limpar todo o combate?")) return;
-  listaDeIniciativa = [];
-  turnoAtivo        = 0;
+  listaDeIniciativa  = [];
+  turnoAtivo         = 0;
+  rodadaAtual        = 1;
+  efeitosTemporarios = [];
   salvarESincronizar();
 }
 
@@ -918,6 +1269,7 @@ window.onload = () => {
 
   atualizarIniciativa();
   renderizarStatusGrupo();
+  atualizarPainelTurno();
 
   const historicoSalvo = JSON.parse(localStorage.getItem("historicoRPG")) || [];
   historicoSalvo.forEach(e => renderizarItemHistorico(e.texto, e.tipo));
@@ -933,6 +1285,12 @@ window.onload = () => {
     document.querySelectorAll(".condicao-popover:not(.oculto)")
       .forEach(p => p.classList.add("oculto"));
   });
+
+  // Modal de condição/duração
+  document.getElementById("fechar-condicao-duracao").addEventListener("click", fecharModalCondicaoDuracao);
+  document.getElementById("btn-confirmar-condicao").addEventListener("click", confirmarCondicao);
+  window.addEventListener("click", (e) => { if (e.target === document.getElementById("modal-condicao-duracao")) fecharModalCondicaoDuracao(); });
+  document.getElementById("modal-condicao-duracao").addEventListener("keydown", (e) => { if (e.key === "Enter") confirmarCondicao(); });
 
   // Modal de dano/cura
   document.getElementById("fechar-dano-cura").addEventListener("click", fecharModalDanoCura);
