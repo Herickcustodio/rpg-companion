@@ -8,13 +8,13 @@ https://game-icons.net/
 
 Falta implementar:
 
-FEITO - Ajustar os cards de monstros pra ficar mais bonito.
-FEITO - Criar a opção de criar um monstro se preferir.
-FEITO - Ter uma barrinha de pesquisa no painel de monstros.
-Feito - Decidir o que fazer com o controle de turno (reduzir e aumentar alguma outra ou acoplar ela no painel de combate).
-FEITO - Condições quando forem aplicadas e retiradas, aparecer no histórico.
-Feito - Aparecer no histórico adição de monstros e heróis ao combate.
-FEITO - Mudei o ND para CA
+Quando rolar o dano e estiver na vez da pessoa, vai aparecer no chat o nome + dano. Posso talvez colocar também quem levou o dano. Colocar uma previa do que vai ocorrer, na janela.
+FEITO Deixar o fundo do card do personagem no turno atual na cor dele mesmo.
+Vamos mexer no modo light
+Fazer um modo inglês
+FEITO Monstros colocar em ordem alfabética
+
+
 ===================
 ====================================
 
@@ -62,3 +62,90 @@ Não pode ouvir; falha automática em testes baseados em audição.
 
 **Exaustão (Exhaustion):**
 Condição cumulativa com níveis de severidade crescentes que afetam testes, velocidade e levam à morte no nível máximo.
+
+
+=======
+
+RPG companion já existe, possiveis nomes:
+Dice Master
+Campaign Core
+Master companion
+Master keeper
+Master shield <<<<<<<< possivel candidato
+Tabletop master
+
+MASTER SHIELD
+Your shield behind the screen.
+
+Ou em português:
+
+MASTER SHIELD
+O escudo por trás da tela.
+
+Ou:
+
+MASTER SHIELD
+Tudo que o mestre precisa, em um só lugar.
+
+-===========
+
+             RPG COMPANION
+                   │
+          rpgcompanion.com
+                   │
+            HTML/CSS/JS
+                   │
+        ┌──────────┴──────────┐
+        │                     │
+  Sem login               Com login
+        │                     │
+ localStorage            Supabase
+                              │
+                    ┌─────────┴─────────┐
+                    │                   │
+              Autenticação        PostgreSQL
+                    │                   │
+                 Usuário          Dados do RPG
+
+
+                 ============================
+
+
+
+1. Agora
+
+Criar repositório do RPG Companion no GitHub
+Colocar o projeto no Cloudflare Pages
+Comprar rpgcompanion.com
+Vincular o domínio
+Continuar usando localStorage
+
+Lançar versão 1
+
+2. Quando o projeto estiver mais maduro
+
+Criar projeto no Supabase
+Criar sistema de cadastro/login
+Criar banco PostgreSQL
+Criar API/regras de acesso
+Migrar os dados do localStorage para a conta do usuário
+
+3. Futuramente
+
+Sincronização entre dispositivos
+Backup dos personagens
+Campanhas compartilhadas
+Recursos online etc.
+
+
+
+=====
+
+mastershieldrpg.com está disponível
+
+Renovação: R$ 296,97
+
+R$ 197,99
+1º ano: R$ 0,01
+
+Anos adicionais: R$ 98,99 cada

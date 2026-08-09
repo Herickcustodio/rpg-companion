@@ -1,12 +1,74 @@
 /* ==========================================================================
+   0. VARIÁVEIS DE TEMA
+   ========================================================================== */
+:root {
+  --bg-body:        #1b1b1b;
+  --bg-header:      #121212;
+  --bg-painel:      #2a2a2a;
+  --bg-card:        #1e1e1e;
+  --bg-input:       #1e1e1e;
+  --bg-card2:       #2a2a2a;
+  --bg-modal:       #1e1e1e;
+  --bg-popover:     #1a1a1a;
+  --bg-tag-cond:    #2e2210;
+
+  --border-default: #444;
+  --border-light:   #333;
+  --border-input:   #555;
+
+  --text-primary:   #f0f0f0;
+  --text-secondary: #ccc;
+  --text-muted:     #888;
+  --text-faint:     #555;
+
+  --accent:         #064D9F;
+  --accent-hover:   #0a65cc;
+  --accent-glow:    rgba(6, 77, 159, 0.3);
+
+  --green:          #28a745;
+  --red:            #e63946;
+  --yellow:         #f39c12;
+}
+
+body.tema-light {
+  --bg-body:        #d1d5db;
+  --bg-header:      #b8bec8;
+  --bg-painel:      #e2e5ea;
+  --bg-card:        #d8dce3;
+  --bg-input:       #e8ebef;
+  --bg-card2:       #cdd1d8;
+  --bg-modal:       #e2e5ea;
+  --bg-popover:     #e2e5ea;
+  --bg-tag-cond:    #f0e6c8;
+
+  --border-default: #9aa3af;
+  --border-light:   #b0b8c4;
+  --border-input:   #7a8694;
+
+  --text-primary:   #1e293b;
+  --text-secondary: #374151;
+  --text-muted:     #4b5563;
+  --text-faint:     #6b7280;
+
+  --accent:         #064D9F;
+  --accent-hover:   #0a65cc;
+  --accent-glow:    rgba(6, 77, 159, 0.15);
+
+  --green:          #15803d;
+  --red:            #b91c1c;
+  --yellow:         #b45309;
+}
+
+/* ==========================================================================
    1. CONFIGURAÇÕES GERAIS E BODY
    ========================================================================== */
 body {
   margin: 0;
   font-family: Arial, sans-serif;
-  background: #1b1b1b;
-  color: #f0f0f0;
+  background: var(--bg-body);
+  color: var(--text-primary);
   overflow: hidden;
+  transition: background 0.3s, color 0.3s;
 }
 
 /* ==========================================================================
@@ -16,12 +78,13 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #121212;
-  color: #064D9F;
+  background-color: var(--bg-header);
+  color: var(--accent);
   padding: 8px 20px;
-  border-bottom: 2px solid #064D9F;
+  border-bottom: 2px solid var(--accent);
   width: 100%;
   box-sizing: border-box;
+  transition: background 0.3s;
 }
 
 .cabecalho-topo h1 {
@@ -35,9 +98,9 @@ body {
 }
 
 .btn-topo {
-  background-color: #2a2a2a;
-  color: white;
-  border: 1px solid #064D9F;
+  background-color: var(--bg-card2);
+  color: var(--text-primary);
+  border: 1px solid var(--accent);
   padding: 8px 15px;
   cursor: pointer;
   border-radius: 4px;
@@ -46,7 +109,7 @@ body {
 }
 
 .btn-topo:hover {
-  background-color: #555;
+  background-color: var(--border-default);
 }
 
 /* ==========================================================================
@@ -63,12 +126,12 @@ body {
 }
 
 .painel {
-  background: #2a2a2a;
-  border: 1px solid #444;
+  background: var(--bg-painel);
+  border: 1px solid var(--border-default);
   border-radius: 8px;
   padding: 6px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-  transition: border-color 0.2s, transform 0.2s;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  transition: border-color 0.2s, transform 0.2s, background 0.3s;
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -78,18 +141,17 @@ body {
   margin-top: 0;
   margin-bottom: 8px;
   font-size: 18px;
-  border-bottom: 1px solid #444;
+  border-bottom: 1px solid var(--border-default);
   padding-bottom: 5px;
   flex-shrink: 0;
-  color: #f0f0f0;
+  color: var(--text-primary);
 }
 
-/* Cabeçalho com título + botão na mesma linha */
 .painel-cabecalho {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid #444;
+  border-bottom: 1px solid var(--border-default);
   padding-bottom: 5px;
   margin-bottom: 8px;
   flex-shrink: 0;
@@ -102,7 +164,7 @@ body {
 }
 
 .painel:hover {
-  border-color: #777;
+  border-color: var(--text-muted);
   transform: scale(1.01);
 }
 
@@ -156,7 +218,7 @@ body {
 .btn-limpar-combate {
   padding: 4px 10px;
   background: #8b1a1a;
-  color: #f0f0f0;
+  color: var(--text-primary);
   border: 1px solid #c0392b;
   border-radius: 4px;
   cursor: pointer;
@@ -172,17 +234,31 @@ body {
 /* Item base */
 .item-iniciativa {
   padding: 8px 10px;
-  border: 1px solid #3a3a3a;
+  border: 1px solid var(--border-light);
   border-radius: 6px;
   margin-bottom: 8px;
-  background: #1e1e1e;
+  background: var(--bg-card);
   transition: border-color 0.2s, background 0.2s;
+}
+
+.turno-ativo-card {
+  background: var(--bg-card);
+  border: 1px solid var(--accent);
+  border-left: 4px solid #5aabff;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-bottom: 8px;
+  animation: pulso-ativo 2s ease-in-out infinite;
+}
+
+body.tema-light .turno-ativo-card {
+  background: #dbeafe;
 }
 
 /* Turno ativo */
 .item-iniciativa--ativo {
   border-color: #064D9F;
-  background: #1a2535;
+  background: var(--bg-card);
   box-shadow: 0 0 0 1px #064D9F;
 }
 
@@ -330,7 +406,7 @@ body {
    ========================================================================== */
 .modal-dano-hp-atual {
   font-size: 13px;
-  color: #aaa;
+  color: var(--text-secondary);
   margin: -8px 0 4px;
 }
 
@@ -357,9 +433,9 @@ body {
 
 .modal-dano-seletor-grupo input,
 .modal-dano-seletor-grupo select {
-  background: #2a2a2a;
+  background: var(--bg-card2);
   color: #fff;
-  border: 1px solid #555;
+  border: 1px solid var(--border-input);
   border-radius: 6px;
   padding: 7px 10px;
   font-size: 15px;
@@ -382,13 +458,13 @@ body {
 .modal-dano-seletor-sep {
   font-size: 22px;
   font-weight: bold;
-  color: #555;
+  color: var(--text-faint);
   padding-bottom: 6px;
 }
 
 .btn-rolar-dano-modal {
   padding: 8px 14px;
-  background: #2a2a2a;
+  background: var(--bg-card2);
   color: #fff;
   border: 1px solid #064D9F;
   border-radius: 6px;
@@ -454,7 +530,7 @@ body {
   background: none;
   border: 1px dashed #555;
   border-radius: 4px;
-  color: #888;
+  color: var(--text-muted);
   font-size: 13px;
   cursor: pointer;
   transition: border-color 0.15s, color 0.15s;
@@ -479,8 +555,8 @@ body {
 .modal-dano-aviso {
   font-size: 12px;
   color: #f39c12;
-  background: #2e2210;
-  border: 1px solid #f39c12;
+  background: var(--bg-tag-cond);
+  border: 1px solid var(--yellow);
   border-radius: 4px;
   padding: 6px 10px;
   margin-top: 4px;
@@ -503,7 +579,7 @@ body {
 /* Barra de HP */
 .barra-hp-wrap {
   height: 5px;
-  background: #333;
+  background: var(--bg-card2);
   border-radius: 3px;
   overflow: hidden;
   margin-bottom: 8px;
@@ -532,9 +608,9 @@ body {
 .btn-hp-step {
   width: 24px;
   height: 24px;
-  background: #333;
-  color: #fff;
-  border: 1px solid #555;
+  background: var(--bg-card2);
+  color: var(--text-primary);
+  border: 1px solid var(--border-input);
   border-radius: 4px;
   cursor: pointer;
   font-size: 16px;
@@ -547,14 +623,15 @@ body {
 }
 
 .btn-hp-step:hover {
-  background: #064D9F;
+  background: var(--accent);
+  color: #fff;
 }
 
 .input-vida {
   width: 50px;
-  background: #2a2a2a;
-  color: white;
-  border: 1px solid #444;
+  background: var(--bg-card2);
+  color: var(--text-primary);
+  border: 1px solid var(--border-default);
   text-align: center;
   border-radius: 3px;
   padding: 3px;
@@ -563,7 +640,7 @@ body {
 
 .input-vida:focus {
   outline: none;
-  border-color: #064D9F;
+  border-color: var(--accent);
 }
 
 /* Condições — tags ativas no card */
@@ -578,12 +655,12 @@ body {
   display: inline-flex;
   align-items: center;
   gap: 3px;
-  background: #2e2210;
-  border: 1px solid #f39c12;
+  background: var(--bg-tag-cond);
+  border: 1px solid var(--yellow);
   border-radius: 4px;
   padding: 2px 7px;
   font-size: 12px;
-  color: #f5c97a;
+  color: var(--yellow);
   cursor: pointer;
   transition: background 0.15s;
 }
@@ -602,7 +679,7 @@ body {
   background: none;
   border: 1px dashed #555;
   border-radius: 4px;
-  color: #888;
+  color: var(--text-muted);
   font-size: 11px;
   padding: 3px 8px;
   cursor: pointer;
@@ -617,7 +694,7 @@ body {
 .condicao-popover {
   position: fixed;
   z-index: 1000;
-  background: #1a1a1a;
+  background: var(--bg-popover);
   border: 1px solid #444;
   border-radius: 8px;
   padding: 8px;
@@ -634,8 +711,8 @@ body {
   display: flex;
   align-items: center;
   gap: 6px;
-  background: #2a2a2a;
-  border: 1px solid #3a3a3a;
+  background: var(--bg-card2);
+  border: 1px solid var(--border-light);
   border-radius: 5px;
   padding: 5px 8px;
   cursor: pointer;
@@ -644,12 +721,12 @@ body {
 }
 
 .condicao-opcao:hover {
-  background: #333;
+  background: var(--bg-card2);
   border-color: #666;
 }
 
 .condicao-opcao--ativa {
-  background: #2e2210;
+  background: var(--bg-tag-cond);
   border-color: #f39c12;
 }
 
@@ -665,12 +742,12 @@ body {
 
 .cond-label {
   font-size: 11px;
-  color: #ddd;
+  color: var(--text-secondary);
   line-height: 1.2;
 }
 
 .condicao-opcao--ativa .cond-label {
-  color: #f5c97a;
+  color: var(--yellow);
 }
 
 /* ==========================================================================
@@ -681,8 +758,8 @@ body {
   align-items: center;
   justify-content: center;
   gap: 10px;
-  background: #1e1e1e;
-  border: 1px solid #333;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
   border-radius: 8px;
   padding: 8px 12px;
   margin-bottom: 8px;
@@ -690,7 +767,7 @@ body {
 
 .turno-rodada-label {
   font-size: 12px;
-  color: #888;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 1px;
 }
@@ -706,7 +783,7 @@ body {
 
 /* Card do combatente ativo */
 .turno-ativo-card {
-  background: #1a2535;
+  background: var(--bg-card);
   border: 1px solid #064D9F;
   border-left: 4px solid #5aabff;
   border-radius: 8px;
@@ -750,7 +827,7 @@ body {
   flex-wrap: wrap;
   gap: 8px;
   font-size: 12px;
-  color: #aaa;
+  color: var(--text-secondary);
   margin-bottom: 2px;
 }
 
@@ -767,11 +844,11 @@ body {
 
 .turno-ativo-cond-tag {
   font-size: 11px;
-  background: #2e2210;
-  border: 1px solid #f39c12;
+  background: var(--bg-tag-cond);
+  border: 1px solid var(--yellow);
   border-radius: 4px;
   padding: 1px 6px;
-  color: #f5c97a;
+  color: var(--yellow);
 }
 
 
@@ -784,9 +861,9 @@ body {
 .btn-turno {
   flex: 1;
   padding: 10px;
-  background: #2a2a2a;
-  color: #f0f0f0;
-  border: 1px solid #555;
+  background: var(--bg-card2);
+  color: var(--text-primary);
+  border: 1px solid var(--border-input);
   border-radius: 4px;
   cursor: pointer;
   font-size: 13px;
@@ -795,7 +872,7 @@ body {
 }
 
 .btn-turno:hover {
-  background: #444;
+  background: var(--border-default);
 }
 
 .btn-turno--proximo {
@@ -809,7 +886,7 @@ body {
 
 .turno-dica {
   font-size: 11px;
-  color: #555;
+  color: var(--text-faint);
   margin-top: 4px;
   text-align: center;
 }
@@ -822,12 +899,12 @@ body {
   margin-top: 10px;
   margin-bottom: 6px;
   padding-top: 8px;
-  border-top: 1px solid #333;
+  border-top: 1px solid var(--border-light);
 }
 
 .turno-efeitos-titulo {
   font-size: 12px;
-  color: #888;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -836,7 +913,7 @@ body {
   background: none;
   border: 1px dashed #555;
   border-radius: 4px;
-  color: #888;
+  color: var(--text-muted);
   font-size: 11px;
   padding: 3px 8px;
   cursor: pointer;
@@ -856,7 +933,7 @@ body {
 
 .efeitos-vazio {
   font-size: 11px;
-  color: #555;
+  color: var(--text-faint);
   text-align: center;
   margin: 4px 0;
 }
@@ -865,8 +942,8 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background: #1e1e1e;
-  border: 1px solid #333;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
   border-left: 3px solid #5aabff;
   border-radius: 5px;
   padding: 5px 8px;
@@ -891,7 +968,7 @@ body {
 
 .efeito-nome {
   font-size: 13px;
-  color: #eee;
+  color: var(--text-primary);
   font-weight: bold;
 }
 
@@ -908,7 +985,7 @@ body {
 .efeito-btn-del {
   background: none;
   border: none;
-  color: #555;
+  color: var(--text-faint);
   cursor: pointer;
   font-size: 12px;
   padding: 2px 4px;
@@ -929,9 +1006,9 @@ body {
 }
 
 .efeito-input {
-  background: #1e1e1e;
+  background: var(--bg-card);
   color: #fff;
-  border: 1px solid #555;
+  border: 1px solid var(--border-input);
   border-radius: 4px;
   padding: 5px 8px;
   font-size: 12px;
@@ -966,8 +1043,8 @@ body {
 }
 
 .btn-cancelar-efeito {
-  background: #2a2a2a;
-  color: #888;
+  background: var(--bg-card2);
+  color: var(--text-muted);
   border: 1px solid #444;
   border-radius: 4px;
   padding: 5px 10px;
@@ -977,7 +1054,7 @@ body {
 }
 
 .btn-cancelar-efeito:hover {
-  background: #444;
+  background: var(--border-default);
   color: #fff;
 }
 
@@ -996,8 +1073,8 @@ body {
   width: 55px;
   height: 55px;
   padding: 5px;
-  background: #3a3a3a;
-  border: 1px solid #555;
+  background: var(--bg-card2);
+  border: 1px solid var(--border-input);
   border-radius: 8px;
   cursor: pointer;
   display: flex;
@@ -1050,9 +1127,9 @@ body {
 .controle-modificador input {
   width: 45px;
   padding: 6px;
-  background: #1e1e1e;
+  background: var(--bg-card);
   color: white;
-  border: 1px solid #555;
+  border: 1px solid var(--border-input);
   border-radius: 4px;
   text-align: center;
   font-size: 16px;
@@ -1071,9 +1148,9 @@ body {
   flex: 1;
   width: 100%;
   min-height: 0;
-  background: #1e1e1e;
-  color: #fff;
-  border: 1px solid #555;
+  background: var(--bg-input);
+  color: var(--text-primary);
+  border: 1px solid var(--border-input);
   border-radius: 5px;
   padding: 8px;
   resize: none;
@@ -1084,7 +1161,7 @@ body {
 
 .anotacoes textarea:focus {
   outline: none;
-  border-color: #064D9F;
+  border-color: var(--accent);
 }
 
 /* ==========================================================================
@@ -1096,25 +1173,28 @@ body {
 }
 
 .log-item {
-  background: #1e1e1e;
-  border-left: 3px solid #064D9F;
+  background: var(--bg-card);
+  border-left: 3px solid var(--accent);
   border-radius: 4px;
   padding: 6px;
   font-size: 13px;
   font-weight: bold;
-  color: #eee;
+  color: var(--text-primary);
   margin-bottom: 6px;
 }
 
 .log-item.falha {
-  border-left-color: #e63946;
+  border-left-color: var(--red);
   color: #ff6b6b;
 }
 
 .log-item.sucesso {
-  border-left-color: #2ecc71;
+  border-left-color: var(--green);
   color: #6bffb0;
 }
+
+body.tema-light .log-item.falha  { color: #dc2626; }
+body.tema-light .log-item.sucesso { color: #16a34a; }
 
 /* ==========================================================================
    10. STATUS DO GRUPO
@@ -1123,7 +1203,7 @@ body {
   width: 100%;
   padding: 8px;
   margin-bottom: 12px;
-  background: #064D9F;
+  background: var(--accent);
   color: white;
   border: none;
   border-radius: 4px;
@@ -1135,14 +1215,14 @@ body {
 }
 
 .btn-novo-heroi:hover {
-  background: #0a65cc;
+  background: var(--accent-hover);
 }
 
 .card-heroi {
-  background: #1e1e1e;
+  background: var(--bg-card);
   padding: 8px 10px;
   border-radius: 6px;
-  border-left: 4px solid #064D9F;
+  border-left: 4px solid var(--accent);
   margin-bottom: 8px;
 }
 
@@ -1155,7 +1235,7 @@ body {
 }
 
 .card-heroi-nome {
-  color: #fff;
+  color: var(--text-primary);
   font-size: 1.05em;
   font-weight: bold;
   flex: 1;
@@ -1172,7 +1252,7 @@ body {
 
 .card-heroi-sub {
   font-size: 11px;
-  color: #888;
+  color: var(--text-muted);
   margin-bottom: 6px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -1197,13 +1277,13 @@ body {
 
 .card-heroi-hp label {
   font-size: 12px;
-  color: #aaa;
+  color: var(--text-secondary);
   margin-right: 2px;
 }
 
 .card-heroi-hp input {
   width: 45px;
-  background: #2a2a2a;
+  background: var(--bg-card2);
   color: #fff;
   border: 1px solid #444;
   text-align: center;
@@ -1220,7 +1300,7 @@ body {
 .btn-remover-heroi {
   background: none;
   border: none;
-  color: #555;
+  color: var(--text-faint);
   cursor: pointer;
   font-size: 12px;
   padding: 2px 4px;
@@ -1310,7 +1390,7 @@ body {
 .btn-deletar-monstro {
   background: none;
   border: none;
-  color: #555;
+  color: var(--text-faint);
   cursor: pointer;
   font-size: 12px;
   padding: 2px 5px;
@@ -1323,9 +1403,9 @@ body {
 }
 
 .input-busca-monstros {
-  background: #1e1e1e;
+  background: var(--bg-card);
   color: #fff;
-  border: 1px solid #555;
+  border: 1px solid var(--border-input);
   border-radius: 4px;
   padding: 3px 8px;
   font-size: 12px;
@@ -1346,15 +1426,15 @@ body {
   padding: 8px 10px;
   border-radius: 6px;
   margin-bottom: 4px;
-  background: #1e1e1e;
-  border: 1px solid #2e2e2e;
-  border-left: 3px solid #333;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-left: 3px solid var(--border-default);
   transition: border-color 0.15s, background 0.15s;
 }
 
 .item-monstro:hover {
-  background: #242424;
-  border-color: #555;
+  background: var(--bg-card2);
+  border-color: var(--text-faint);
   border-left-color: #064D9F;
 }
 
@@ -1381,7 +1461,7 @@ body {
 }
 
 .item-monstro-nome {
-  color: #f0f0f0;
+  color: var(--text-primary);
   font-size: 13px;
   font-weight: bold;
   display: flex;
@@ -1398,8 +1478,8 @@ body {
   display: flex;
   align-items: center;
   gap: 3px;
-  background: #252525;
-  border: 1px solid #333;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
   border-radius: 4px;
   padding: 2px 7px;
   font-size: 11px;
@@ -1413,7 +1493,7 @@ body {
 }
 
 .item-monstro-stat-valor {
-  color: #ddd;
+  color: var(--text-secondary);
   font-weight: bold;
 }
 
@@ -1459,13 +1539,13 @@ body {
 }
 
 .modal-conteudo {
-  background: #1e1e1e;
-  color: white;
+  background: var(--bg-modal);
+  color: var(--text-primary);
   padding: 25px;
   border-radius: 12px;
   width: 90%;
   max-width: 500px;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
   position: relative;
 }
 
@@ -1475,40 +1555,32 @@ body {
   right: 15px;
   font-size: 28px;
   cursor: pointer;
-  color: #aaa;
+  color: var(--text-muted);
   line-height: 1;
 }
 
 .fechar-modal:hover {
-  color: #fff;
-}
-
-/* Formulário do modal de herói */
-.form-heroi {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 12px;
+  color: var(--text-primary);
 }
 
 .form-heroi label {
   font-size: 13px;
-  color: #aaa;
+  color: var(--text-muted);
   margin-bottom: 2px;
 }
 
 .form-heroi input {
   padding: 8px 10px;
-  background: #2a2a2a;
-  color: #fff;
-  border: 1px solid #555;
+  background: var(--bg-card2);
+  color: var(--text-primary);
+  border: 1px solid var(--border-input);
   border-radius: 4px;
   font-size: 14px;
 }
 
 .form-heroi input:focus {
   outline: none;
-  border-color: #064D9F;
+  border-color: var(--accent);
 }
 
 .btn-confirmar {
@@ -1540,7 +1612,7 @@ body {
 
 .btn-rolar-ini {
   padding: 10px 16px;
-  background: #2a2a2a;
+  background: var(--bg-card2);
   color: #fff;
   border: 1px solid #064D9F;
   border-radius: 4px;
@@ -1603,8 +1675,8 @@ body {
 .btn-area-sel {
   flex: 1;
   padding: 5px;
-  background: #2a2a2a;
-  color: #aaa;
+  background: var(--bg-card2);
+  color: var(--text-secondary);
   border: 1px solid #444;
   border-radius: 4px;
   font-size: 12px;
@@ -1613,7 +1685,7 @@ body {
 }
 
 .btn-area-sel:hover {
-  background: #3a3a3a;
+  background: var(--bg-card2);
   color: #fff;
 }
 
@@ -1651,8 +1723,8 @@ body {
   justify-content: space-between;
   align-items: center;
   flex: 1;
-  background: #1e1e1e;
-  border: 1px solid #333;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
   border-left: 3px solid #444;
   border-radius: 5px;
   padding: 5px 10px;
@@ -1661,7 +1733,7 @@ body {
 
 .area-alvo-nome {
   font-size: 13px;
-  color: #eee;
+  color: var(--text-primary);
   font-weight: bold;
 }
 

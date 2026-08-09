@@ -458,11 +458,13 @@ function marcarMorto(id) {
   if (!criatura) return;
 
   if (criatura.morto) {
-    criatura.morto = false;
+    criatura.morto      = false;
+    criatura.nocauteado = false; // limpa nocaute também ao reviver
     adicionarHistorico(`💚 ${criatura.nome} foi revivido!`, "sucesso");
   } else {
     if (!confirm(`Marcar "${criatura.nome}" como morto?`)) return;
-    criatura.morto = true;
+    criatura.morto      = true;
+    criatura.nocauteado = false;
     adicionarHistorico(`☠️ ${criatura.nome} morreu!`, "falha");
   }
 
@@ -935,11 +937,24 @@ function atualizarIniciativa() {
       + (personagem.morto                             ? " item-iniciativa--morto"      : "")
       + (personagem.nocauteado && !personagem.morto   ? " item-iniciativa--nocauteado" : "");
 
-    // Cor do herói na borda esquerda
+    // Cor do herói na borda esquerda (e fundo suave quando ativo)
     if (personagem.idHeroi) {
       const h   = partyHerois.find(h => h.id === personagem.idHeroi);
       const cor = h?.cor ? CORES_HEROI.find(c => c.id === h.cor) : null;
-      if (cor) item.style.borderLeft = `4px solid ${cor.hex}`;
+      if (cor) {
+        item.style.borderLeft = `4px solid ${cor.hex}`;
+        if (ativo && !personagem.morto) {
+          item.style.background = `${cor.hex}22`; // 22 = ~13% opacidade
+          item.style.boxShadow  = `0 0 0 1px ${cor.hex}88`;
+        }
+      }
+    }
+
+    // Fundo vermelho quando morto
+    if (personagem.morto) {
+      item.style.background    = "#2a0a0a";
+      item.style.borderLeft    = "4px solid #c0392b";
+      item.style.boxShadow     = "0 0 0 1px #8b1a1a";
     }
 
     // ── Cabeçalho: nome + botão remover
@@ -1273,7 +1288,7 @@ function renderizarColetanea(filtro = "") {
 
   const listaCompleta = [
     ...monstrosCustom,
-    ...coletaneaMonstros
+    ...[...coletaneaMonstros].sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"))
   ];
 
   const lista = termo
@@ -1399,6 +1414,12 @@ function limparHistorico() {
   document.getElementById("log-historico").innerHTML = "";
 }
 
+function atualizarBtnTema() {
+  const isLight = document.body.classList.contains("tema-light");
+  const btn = document.getElementById("btn-tema");
+  if (btn) btn.textContent = isLight ? "🌙 Modo Dark" : "🌓 Modo Light";
+}
+
 /* ==========================================================================
    10. MODAIS
    ========================================================================== */
@@ -1487,6 +1508,18 @@ window.onload = () => {
   document.getElementById("btn-rolar-dano-modal").addEventListener("click", rolarDadoModal);
   window.addEventListener("click", (e) => { if (e.target === document.getElementById("modal-dano-cura")) fecharModalDanoCura(); });
   document.getElementById("modal-dano-cura").addEventListener("keydown", (e) => { if (e.key === "Enter") confirmarDanoCura(); });
+
+  // Tema dark/light
+  const temaAtual = localStorage.getItem("temaRPG") || "dark";
+  if (temaAtual === "light") document.body.classList.add("tema-light");
+  atualizarBtnTema();
+
+  document.getElementById("btn-tema").addEventListener("click", () => {
+    document.body.classList.toggle("tema-light");
+    const novoTema = document.body.classList.contains("tema-light") ? "light" : "dark";
+    localStorage.setItem("temaRPG", novoTema);
+    atualizarBtnTema();
+  });
 
   // Botões de controle de turno
   document.getElementById("btn-turno-anterior").addEventListener("click", turnoAnterior);
