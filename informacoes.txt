@@ -8,10 +8,11 @@ https://game-icons.net/
 
 Falta implementar:
 
-Quando rolar o dano e estiver na vez da pessoa, vai aparecer no chat o nome + dano. Posso talvez colocar também quem levou o dano. Colocar uma previa do que vai ocorrer, na janela.
+FEITO Quando rolar o dano e estiver na vez da pessoa, vai aparecer no chat o nome + dano. Posso talvez colocar também quem levou o dano. Colocar uma previa do que vai ocorrer, na janela.
 FEITO Deixar o fundo do card do personagem no turno atual na cor dele mesmo.
-Vamos mexer no modo light
+FEITO Vamos mexer no modo light
 Fazer um modo inglês
+Fazer modo celular
 FEITO Monstros colocar em ordem alfabética
 
 

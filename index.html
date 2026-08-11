@@ -10,7 +10,7 @@
 
   <header class="cabecalho-topo">
     <div class="logo">
-      <h1>⚔️ RPG Companion</h1>
+      <h1>⚔️ RPG Companion <span id="header-campanha" class="header-campanha"></span></h1>
     </div>
 
     <nav class="menu-controles">
@@ -49,10 +49,71 @@
 
     <!-- Modal Configurações -->
     <div id="modal-config" class="modal oculto">
-      <div class="modal-conteudo">
+      <div class="modal-conteudo modal-config-conteudo">
         <span class="fechar-modal" id="fechar-config">&times;</span>
-        <h2>Configurações</h2>
-        <p>Texto de configurações para usar o RPG Companion.</p>
+        <h2>⚙️ Configurações</h2>
+
+        <!-- 1. CAMPANHA -->
+        <div class="config-secao">
+          <h3 class="config-titulo">🗺️ Campanha</h3>
+          <label for="config-campanha-nome">Nome da Campanha</label>
+          <input type="text" id="config-campanha-nome" placeholder="Ex: A Maldição de Strahd" />
+          <label for="config-mestre-nome">Nome do Mestre</label>
+          <input type="text" id="config-mestre-nome" placeholder="Ex: Herick" />
+        </div>
+
+        <!-- 2. COMBATE -->
+        <div class="config-secao">
+          <h3 class="config-titulo">⚔️ Combate</h3>
+
+          <label for="config-dado-acerto">Dado padrão de acerto</label>
+          <select id="config-dado-acerto" class="modal-dano-select">
+            <option value="4">d4</option>
+            <option value="6">d6</option>
+            <option value="8">d8</option>
+            <option value="10">d10</option>
+            <option value="12">d12</option>
+            <option value="20" selected>d20</option>
+            <option value="100">d100</option>
+          </select>
+
+          <div class="config-toggle-row">
+            <div>
+              <span class="config-toggle-label">Etapa de acerto antes do dano</span>
+              <span class="config-toggle-desc">Se desativado, ⚔️ Dano vai direto para o dano</span>
+            </div>
+            <label class="config-toggle">
+              <input type="checkbox" id="config-etapa-acerto" checked />
+              <span class="config-toggle-slider"></span>
+            </label>
+          </div>
+
+          <div class="config-toggle-row">
+            <div>
+              <span class="config-toggle-label">Marcar mortos automaticamente</span>
+              <span class="config-toggle-desc">Monstros vão a 0 HP → marcados como mortos</span>
+            </div>
+            <label class="config-toggle">
+              <input type="checkbox" id="config-auto-morte" checked />
+              <span class="config-toggle-slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <!-- 3. DADOS E SESSÃO -->
+        <div class="config-secao">
+          <h3 class="config-titulo">💾 Sessão</h3>
+          <div class="config-botoes-sessao">
+            <button id="btn-exportar-sessao" class="btn-config-sessao">📥 Exportar Sessão</button>
+            <label class="btn-config-sessao btn-config-importar" for="input-importar-sessao">
+              📤 Importar Sessão
+            </label>
+            <input type="file" id="input-importar-sessao" accept=".json" style="display:none;" />
+          </div>
+          <button id="btn-limpar-tudo" class="btn-config-danger">🗑️ Limpar todos os dados</button>
+        </div>
+
+        <button id="btn-salvar-config" class="btn-confirmar" style="margin-top:8px;">Salvar Configurações</button>
       </div>
     </div>
 
@@ -132,12 +193,71 @@
       </div>
     </div>
 
+    <!-- Modal Acerto -->
+    <div id="modal-acerto" class="modal oculto">
+      <div class="modal-conteudo modal-conteudo--pequeno">
+        <span class="fechar-modal" id="fechar-acerto">&times;</span>
+        <h2 id="modal-acerto-titulo">🎯 Rolagem de Acerto</h2>
+
+        <div class="form-heroi">
+          <label for="acerto-atacante">Atacante</label>
+          <select id="acerto-atacante" class="modal-dano-select"></select>
+
+          <div class="acerto-ca-ref" id="acerto-ca-ref"></div>
+
+          <label>Dado de acerto</label>
+          <div class="modal-dano-seletor">
+            <div class="modal-dano-seletor-grupo">
+              <label>Qtd</label>
+              <input type="number" id="acerto-qtd" value="1" min="1" max="20" />
+            </div>
+            <span class="modal-dano-seletor-sep">d</span>
+            <div class="modal-dano-seletor-grupo">
+              <label>Dado</label>
+              <select id="acerto-tipo">
+                <option value="4">4</option>
+                <option value="6">6</option>
+                <option value="8">8</option>
+                <option value="10">10</option>
+                <option value="12">12</option>
+                <option value="20" selected>20</option>
+                <option value="100">100</option>
+              </select>
+            </div>
+            <div class="modal-dano-seletor-grupo">
+              <label>Mod</label>
+              <input type="number" id="acerto-modificador" value="0" />
+            </div>
+            <button type="button" id="btn-rolar-acerto" class="btn-rolar-dano-modal">🎲 Rolar</button>
+          </div>
+
+          <label for="acerto-valor-necessario">Valor necessário para acertar</label>
+          <input type="number" id="acerto-valor-necessario" placeholder="Ex: CA do alvo" min="1" />
+
+          <div id="acerto-resultado-wrap" class="acerto-resultado-wrap" style="display:none;">
+            <div id="acerto-resultado-display" class="acerto-resultado-display"></div>
+          </div>
+
+          <div class="acerto-botoes">
+            <button id="btn-acerto-pular" class="btn-acerto-pular">Pular → Ir para Dano</button>
+            <button id="btn-acerto-aplicar-dano" class="btn-confirmar">⚔️ Aplicar Dano</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Modal Dano / Cura -->
     <div id="modal-dano-cura" class="modal oculto">
       <div class="modal-conteudo">
         <span class="fechar-modal" id="fechar-dano-cura">&times;</span>
         <h2 id="modal-dano-titulo">Dano</h2>
         <p id="modal-dano-hp-atual" class="modal-dano-hp-atual"></p>
+
+        <!-- Atacante (só no modo dano) -->
+        <div id="modal-dano-atacante-wrap" class="modal-dano-atacante-wrap" style="display:none;">
+          <label for="modal-dano-atacante">Atacante</label>
+          <select id="modal-dano-atacante" class="modal-dano-select"></select>
+        </div>
 
         <div class="form-heroi">
           <!-- Seletor de dados -->
@@ -176,6 +296,9 @@
           <!-- Valor manual -->
           <label for="modal-dano-manual">Ou digite o valor</label>
           <input type="number" id="modal-dano-manual" placeholder="Valor final" min="0" />
+
+          <!-- Prévia do resultado -->
+          <div id="modal-dano-previa" class="modal-dano-previa" style="display:none;"></div>
 
           <button id="btn-confirmar-dano" class="btn-confirmar">Aplicar</button>
           <button id="btn-morto-modal" class="btn-morto-modal" style="display:none;">☠️ Marcar como Morto</button>
@@ -304,7 +427,7 @@
 
       <!-- Botões anterior/próximo -->
       <div class="turno-controles">
-        <button id="btn-turno-anterior" class="btn-turno">◀ Anterior</button>
+        <button id="btn-turno-anterior" class="btn-turno btn-turno--anterior">◀ Anterior</button>
         <button id="btn-proximo-turno"  class="btn-turno btn-turno--proximo">Próximo ▶</button>
       </div>
 

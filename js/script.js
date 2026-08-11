@@ -96,6 +96,8 @@ function salvarESincronizar() {
    3. MODAL DE NOVO HERÓI
    ========================================================================== */
 function abrirModalHeroi(idEdicao = null) {
+  // Se idEdicao não for uma string (ex: for o objeto de evento de clique), reseta para null
+  if (typeof idEdicao !== "string") idEdicao = null;
   const heroi = idEdicao ? partyHerois.find(h => h.id === idEdicao) : null;
 
   document.getElementById("modal-heroi-titulo").textContent    = heroi ? "Editar Herói" : "Novo Herói";
@@ -585,16 +587,142 @@ function processarHPZero(criatura) {
   if (ehHeroi) {
     criatura.nocauteado = true;
     adicionarHistorico(`😵 ${criatura.nome} está nocauteado! (0 HP)`, "falha");
-  } else {
+  } else if (config.autoMorte) {
     criatura.morto = true;
     adicionarHistorico(`☠️ ${criatura.nome} morreu!`, "falha");
+  } else {
+    adicionarHistorico(`💀 ${criatura.nome} chegou a 0 HP!`, "falha");
   }
 }
 
 let _modalDanoCuraId   = null;
 let _modalDanoCuraTipo = null;
 
-function abrirModalDanoCura(id, tipo) {
+/* ==========================================================================
+   MODAL DE ACERTO
+   ========================================================================== */
+let _acertoAlvoId     = null;
+let _acertoAtacanteId = null;
+
+function abrirModalAcerto(alvoId) {
+  const alvo = listaDeIniciativa.find(c => c.id === alvoId);
+  if (!alvo) return;
+
+  _acertoAlvoId = alvoId;
+
+  document.getElementById("modal-acerto-titulo").textContent = `🎯 Acerto — ${alvo.nome}`;
+
+  // CA do alvo como referência
+  const caRef   = document.getElementById("acerto-ca-ref");
+  const caValor = (() => {
+    if (alvo.idHeroi) {
+      const h = partyHerois.find(h => h.id === alvo.idHeroi);
+      return h?.ca ?? null;
+    }
+    if (alvo.idMonstroCustom) {
+      const mc = monstrosCustom.find(m => m.id === alvo.idMonstroCustom);
+      if (mc) return mc.ca ?? null;
+    }
+    const m = coletaneaMonstros.find(m => m.nome === alvo.nomeBase);
+    return m?.ca ?? null;
+  })();
+
+  if (caValor !== null) {
+    caRef.style.display = "block";
+    caRef.innerHTML     = `🛡️ CA do alvo: <strong>${caValor}</strong>`;
+    document.getElementById("acerto-valor-necessario").value = caValor;
+  } else {
+    caRef.style.display = "none";
+    document.getElementById("acerto-valor-necessario").value = "";
+  }
+
+  // Atacante — pré-seleciona o ativo do turno
+  const sel   = document.getElementById("acerto-atacante");
+  sel.innerHTML = "";
+  const ativo = listaDeIniciativa[turnoAtivo];
+  listaDeIniciativa.filter(c => !c.morto).forEach(c => {
+    const opt = document.createElement("option");
+    opt.value = c.id;
+    opt.textContent = c.nome;
+    if (ativo && c.id === ativo.id) opt.selected = true;
+    sel.appendChild(opt);
+  });
+
+  // Reseta campos
+  document.getElementById("acerto-qtd").value         = "1";
+  document.getElementById("acerto-tipo").value        = "20";
+  document.getElementById("acerto-modificador").value = "0";
+  document.getElementById("acerto-resultado-wrap").style.display  = "none";
+  document.getElementById("acerto-resultado-display").innerHTML   = "";
+
+  document.getElementById("modal-acerto").classList.remove("oculto");
+  document.getElementById("acerto-modificador").focus();
+}
+
+function fecharModalAcerto() {
+  document.getElementById("modal-acerto").classList.add("oculto");
+  _acertoAlvoId     = null;
+  _acertoAtacanteId = null;
+}
+
+function rolarAcerto() {
+  const qtd        = parseInt(document.getElementById("acerto-qtd").value)         || 1;
+  const lados      = parseInt(document.getElementById("acerto-tipo").value)        || 20;
+  const mod        = parseInt(document.getElementById("acerto-modificador").value) || 0;
+  const necessario = parseInt(document.getElementById("acerto-valor-necessario").value);
+
+  let soma = 0;
+  const rolagens = [];
+  for (let i = 0; i < qtd; i++) {
+    const r = Math.floor(Math.random() * lados) + 1;
+    soma += r; rolagens.push(r);
+  }
+  const total   = soma + mod;
+  const sinal   = mod >= 0 ? "+" : "";
+  const formula = `(${qtd}d${lados}: [${rolagens.join(", ")}] ${sinal}${mod})`;
+
+  const wrap    = document.getElementById("acerto-resultado-wrap");
+  const display = document.getElementById("acerto-resultado-display");
+  wrap.style.display = "block";
+
+  const alvo     = listaDeIniciativa.find(c => c.id === _acertoAlvoId);
+  const sel      = document.getElementById("acerto-atacante");
+  const atacante = listaDeIniciativa.find(c => c.id == sel.value);
+  _acertoAtacanteId = sel.value;
+
+  const acertou      = !isNaN(necessario) ? total >= necessario : null;
+  const critico      = lados === 20 && qtd === 1 && rolagens[0] === 20;
+  const falhaCritica = lados === 20 && qtd === 1 && rolagens[0] === 1;
+
+  let badge = "";
+  if (critico)           badge = `<span class="acerto-badge acerto-badge--critico">⚔️ Crítico!</span>`;
+  else if (falhaCritica) badge = `<span class="acerto-badge acerto-badge--falha">💀 Falha Crítica!</span>`;
+  else if (acertou === true)  badge = `<span class="acerto-badge acerto-badge--acertou">✅ Acertou!</span>`;
+  else if (acertou === false) badge = `<span class="acerto-badge acerto-badge--errou">❌ Errou!</span>`;
+
+  display.innerHTML = `
+    <div class="acerto-total ${critico ? "acerto-total--critico" : falhaCritica ? "acerto-total--falha" : ""}">${total}</div>
+    <div class="acerto-formula">${formula}</div>
+    ${badge}
+  `;
+
+  // Log
+  const nomeAtacante = atacante?.nome ?? "?";
+  const nomeAlvo     = alvo?.nome     ?? "?";
+  const sufixo = acertou !== null ? (acertou ? " — Acertou!" : " — Errou!") : "";
+  const logTipo = critico ? "sucesso" : falhaCritica ? "falha" : "";
+  adicionarHistorico(`🎯 ${nomeAtacante} rolou acerto contra ${nomeAlvo}: ${total} ${formula}${sufixo}`, logTipo);
+}
+
+function irParaDano() {
+  const sel = document.getElementById("acerto-atacante");
+  _acertoAtacanteId = sel ? sel.value : null;
+  const alvoId = _acertoAlvoId;
+  fecharModalAcerto();
+  abrirModalDanoCura(alvoId, "dano", _acertoAtacanteId);
+}
+
+function abrirModalDanoCura(id, tipo, atacantePreId = null) {
   const criatura = listaDeIniciativa.find(c => c.id === id);
   if (!criatura) return;
 
@@ -614,6 +742,31 @@ function abrirModalDanoCura(id, tipo) {
   document.getElementById("btn-confirmar-dano").textContent   = isDano ? "⚔️ Aplicar Dano" : "💊 Aplicar Cura";
   document.getElementById("btn-confirmar-dano").className     = isDano ? "btn-confirmar btn-confirmar-dano" : "btn-confirmar btn-confirmar-cura";
 
+  // Seletor de atacante (só no dano)
+  const atacanteWrap = document.getElementById("modal-dano-atacante-wrap");
+  if (isDano) {
+    atacanteWrap.style.display = "block";
+    const sel = document.getElementById("modal-dano-atacante");
+    sel.innerHTML = "";
+    const ativo = listaDeIniciativa[turnoAtivo];
+    listaDeIniciativa.filter(c => !c.morto).forEach(c => {
+      const opt = document.createElement("option");
+      opt.value = c.id;
+      opt.textContent = c.nome;
+      // Prioriza atacante vindo do modal de acerto, depois o ativo do turno
+      const preSelecionar = atacantePreId ? c.id == atacantePreId : (ativo && c.id === ativo.id);
+      if (preSelecionar) opt.selected = true;
+      sel.appendChild(opt);
+    });
+  } else {
+    atacanteWrap.style.display = "none";
+  }
+
+  // Prévia
+  const previa = document.getElementById("modal-dano-previa");
+  previa.style.display = "none";
+  previa.innerHTML = "";
+
   const btnMortoModal = document.getElementById("btn-morto-modal");
   btnMortoModal.style.display = isDano ? "block" : "none";
   btnMortoModal.textContent   = criatura.morto ? "💚 Reviver" : "☠️ Marcar como Morto";
@@ -630,6 +783,31 @@ function fecharModalDanoCura() {
   document.getElementById("modal-dano-cura").classList.add("oculto");
   _modalDanoCuraId   = null;
   _modalDanoCuraTipo = null;
+}
+
+function atualizarPrevia() {
+  const valor    = parseInt(document.getElementById("modal-dano-manual").value);
+  const previa   = document.getElementById("modal-dano-previa");
+  const criatura = listaDeIniciativa.find(c => c.id === _modalDanoCuraId);
+  if (!criatura || isNaN(valor) || valor < 0) { previa.style.display = "none"; return; }
+
+  const isDano = _modalDanoCuraTipo === "dano";
+
+  if (isDano) {
+    const sel       = document.getElementById("modal-dano-atacante");
+    const atacanteId = sel ? sel.value : null;
+    const atacante  = atacanteId ? listaDeIniciativa.find(c => c.id == atacanteId) : null;
+    const hpFinal   = Math.max(0, criatura.hpAtual - valor);
+    const prefixo   = atacante ? `${atacante.nome} → ${criatura.nome}` : criatura.nome;
+    previa.innerHTML = `<span class="previa-ataque">${prefixo}</span><span class="previa-dano">-${valor}</span><span class="previa-hp">${criatura.hpAtual} → ${hpFinal} HP</span>`;
+    previa.className = "modal-dano-previa modal-dano-previa--dano";
+  } else {
+    const hpFinal = Math.min(criatura.hpMax, criatura.hpAtual + valor);
+    previa.innerHTML = `<span class="previa-ataque">${criatura.nome}</span><span class="previa-cura">+${valor}</span><span class="previa-hp">${criatura.hpAtual} → ${hpFinal} HP</span>`;
+    previa.className = "modal-dano-previa modal-dano-previa--cura";
+  }
+
+  previa.style.display = "flex";
 }
 
 function rolarDadoModal() {
@@ -653,6 +831,7 @@ function rolarDadoModal() {
   const sinal = modificador >= 0 ? "+" : "";
   document.getElementById("modal-dano-formula-txt").textContent = `(${quantidade}d${lados}: [${rolagens.join(", ")}] ${sinal}${modificador})`;
   document.getElementById("modal-dano-manual").value = total;
+  atualizarPrevia();
 }
 
 function confirmarDanoCura() {
@@ -665,8 +844,18 @@ function confirmarDanoCura() {
   const hpAntes = criatura.hpAtual;
 
   if (_modalDanoCuraTipo === "dano") {
+    // Pega atacante selecionado
+    const sel = document.getElementById("modal-dano-atacante");
+    const atacanteId = sel ? sel.value : null;
+    const atacante   = atacanteId ? listaDeIniciativa.find(c => c.id == atacanteId) : null;
+    const nomeAtacante = atacante ? atacante.nome : null;
+
     criatura.hpAtual = Math.max(0, criatura.hpAtual - valor);
-    adicionarHistorico(`⚔️ ${criatura.nome} recebeu ${valor} de dano (${hpAntes} → ${criatura.hpAtual} HP)`, "falha");
+
+    const logTxt = nomeAtacante
+      ? `⚔️ ${nomeAtacante} causou ${valor} de dano em ${criatura.nome}! (${hpAntes} → ${criatura.hpAtual} HP)`
+      : `⚔️ ${criatura.nome} recebeu ${valor} de dano (${hpAntes} → ${criatura.hpAtual} HP)`;
+    adicionarHistorico(logTxt, "falha");
     if (criatura.hpAtual === 0 && !criatura.morto) processarHPZero(criatura);
   } else {
     criatura.hpAtual = Math.min(criatura.hpMax, criatura.hpAtual + valor);
@@ -1071,6 +1260,7 @@ function atualizarIniciativa() {
     const btnAbrirCond = document.createElement("button");
     btnAbrirCond.className   = "btn-abrir-condicao";
     btnAbrirCond.textContent = "+ Condição";
+    btnAbrirCond.title       = "Adicionar condição ao combatente";
 
     const popover = document.createElement("div");
     popover.className = "condicao-popover oculto";
@@ -1117,7 +1307,10 @@ function atualizarIniciativa() {
     btnDano.textContent = "⚔️ Dano";
     btnDano.className   = "btn-acao-ini btn-acao-dano";
     btnDano.title       = "Aplicar dano";
-    btnDano.addEventListener("click", () => abrirModalDanoCura(personagem.id, "dano"));
+    btnDano.addEventListener("click", () => {
+      if (config.etapaAcerto) abrirModalAcerto(personagem.id);
+      else abrirModalDanoCura(personagem.id, "dano");
+    });
 
     const btnCura = document.createElement("button");
     btnCura.textContent = "💊 Cura";
@@ -1164,7 +1357,7 @@ function renderizarStatusGrupo() {
   const btnAdd = document.createElement("button");
   btnAdd.textContent = "+ Criar Novo Herói";
   btnAdd.className   = "btn-novo-heroi";
-  btnAdd.addEventListener("click", abrirModalHeroi);
+  btnAdd.addEventListener("click", () => abrirModalHeroi());
   container.appendChild(btnAdd);
 
   partyHerois.forEach(heroi => {
@@ -1432,22 +1625,105 @@ function configurarModal(btnId, modalId, fecharId) {
   window.addEventListener("click", (e) => { if (e.target === modal) modal.classList.add("oculto"); });
 }
 
-configurarModal("btn-sobre",  "modal-sobre",  "fechar-sobre");
-configurarModal("btn-config", "modal-config", "fechar-config");
-configurarModal("btn-ajuda",  "modal-ajuda",  "fechar-ajuda");
+/* ==========================================================================
+   CONFIGURAÇÕES
+   ========================================================================== */
+let config = JSON.parse(localStorage.getItem("configRPG")) || {
+  campanhaNome: "",
+  mestreNome:   "",
+  dadoAcerto:   20,
+  etapaAcerto:  true,
+  autoMorte:    true,
+};
 
-// Modal de iniciativa
-document.getElementById("fechar-iniciativa").addEventListener("click", fecharModalIniciativa);
-document.getElementById("btn-rolar-ini").addEventListener("click", rolarIniciativaModal);
-document.getElementById("btn-confirmar-ini").addEventListener("click", confirmarIniciativaModal);
-window.addEventListener("click", (e) => { if (e.target === document.getElementById("modal-iniciativa")) fecharModalIniciativa(); });
-document.getElementById("modal-iniciativa").addEventListener("keydown", (e) => { if (e.key === "Enter") confirmarIniciativaModal(); });
+function abrirModalConfig() {
+  document.getElementById("config-campanha-nome").value  = config.campanhaNome;
+  document.getElementById("config-mestre-nome").value    = config.mestreNome;
+  document.getElementById("config-dado-acerto").value    = config.dadoAcerto;
+  document.getElementById("config-etapa-acerto").checked = config.etapaAcerto;
+  document.getElementById("config-auto-morte").checked   = config.autoMorte;
+  document.getElementById("modal-config").classList.remove("oculto");
+}
 
-// Modal de herói
-document.getElementById("fechar-heroi").addEventListener("click", fecharModalHeroi);
-document.getElementById("btn-confirmar-heroi").addEventListener("click", confirmarNovoHeroi);
-window.addEventListener("click", (e) => { if (e.target === document.getElementById("modal-heroi")) fecharModalHeroi(); });
-document.getElementById("modal-heroi").addEventListener("keydown", (e) => { if (e.key === "Enter") confirmarNovoHeroi(); });
+function salvarConfig() {
+  config.campanhaNome = document.getElementById("config-campanha-nome").value.trim();
+  config.mestreNome   = document.getElementById("config-mestre-nome").value.trim();
+  config.dadoAcerto   = parseInt(document.getElementById("config-dado-acerto").value) || 20;
+  config.etapaAcerto  = document.getElementById("config-etapa-acerto").checked;
+  config.autoMorte    = document.getElementById("config-auto-morte").checked;
+  localStorage.setItem("configRPG", JSON.stringify(config));
+  aplicarConfig();
+  document.getElementById("modal-config").classList.add("oculto");
+}
+
+function aplicarConfig() {
+  const span = document.getElementById("header-campanha");
+  if (span) span.textContent = config.campanhaNome ? `— ${config.campanhaNome}` : "";
+  const selAcerto = document.getElementById("acerto-tipo");
+  if (selAcerto) selAcerto.value = config.dadoAcerto;
+}
+
+function exportarSessao() {
+  const dados = {
+    versao: "1.0",
+    data: new Date().toLocaleString("pt-BR"),
+    campanha: config.campanhaNome,
+    mestre: config.mestreNome,
+    config, listaDeIniciativa, partyHerois, monstrosCustom,
+    efeitosTemporarios, rodadaAtual, turnoAtivo,
+    historico: JSON.parse(localStorage.getItem("historicoRPG") || "[]"),
+    anotacoes: localStorage.getItem("anotacoesRPG") || "",
+  };
+  const blob = new Blob([JSON.stringify(dados, null, 2)], { type: "application/json" });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement("a");
+  a.href     = url;
+  a.download = config.campanhaNome
+    ? `rpg-${config.campanhaNome.replace(/\s+/g, "-")}.json`
+    : `rpg-sessao-${Date.now()}.json`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function importarSessao(file) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    try {
+      const dados = JSON.parse(e.target.result);
+      if (!confirm(`Importar sessão "${dados.campanha || "sem nome"}" de ${dados.data}?\nIsso substituirá os dados atuais.`)) return;
+      listaDeIniciativa  = dados.listaDeIniciativa  || [];
+      partyHerois        = dados.partyHerois        || [];
+      monstrosCustom     = dados.monstrosCustom     || [];
+      efeitosTemporarios = dados.efeitosTemporarios || [];
+      rodadaAtual        = dados.rodadaAtual        || 1;
+      turnoAtivo         = dados.turnoAtivo         || 0;
+      config             = dados.config             || config;
+      localStorage.setItem("historicoRPG", JSON.stringify(dados.historico || []));
+      localStorage.setItem("anotacoesRPG", dados.anotacoes || "");
+      localStorage.setItem("configRPG",    JSON.stringify(config));
+      const area = document.getElementById("campo-anotacoes");
+      if (area) area.value = dados.anotacoes || "";
+      document.getElementById("log-historico").innerHTML = "";
+      (dados.historico || []).forEach(h => renderizarItemHistorico(h.texto, h.tipo));
+      aplicarConfig();
+      salvarESincronizar();
+      renderizarColetanea();
+      document.getElementById("modal-config").classList.add("oculto");
+      alert("Sessão importada com sucesso!");
+    } catch {
+      alert("Arquivo inválido.");
+    }
+  };
+  reader.readAsText(file);
+}
+
+function limparTodosDados() {
+  if (!confirm("Isso apagará TODOS os dados. Tem certeza?")) return;
+  if (!confirm("Segunda confirmação: não pode ser desfeito!")) return;
+  localStorage.clear();
+  location.reload();
+}
 
 /* ==========================================================================
    11. INICIALIZAÇÃO
@@ -1456,20 +1732,76 @@ window.onload = () => {
   renderizarColetanea();
 
   const inputBusca = document.getElementById("busca-monstros");
-  if (inputBusca) {
-    inputBusca.addEventListener("input", () => renderizarColetanea(inputBusca.value));
-  }
+  if (inputBusca) inputBusca.addEventListener("input", () => renderizarColetanea(inputBusca.value));
 
-  // Modal de monstro customizado
+  configurarModal("btn-sobre", "modal-sobre", "fechar-sobre");
+  configurarModal("btn-ajuda", "modal-ajuda", "fechar-ajuda");
+
+  document.getElementById("btn-config").addEventListener("click", abrirModalConfig);
+  document.getElementById("fechar-config").addEventListener("click", () => document.getElementById("modal-config").classList.add("oculto"));
+  window.addEventListener("click", (e) => { if (e.target === document.getElementById("modal-config")) document.getElementById("modal-config").classList.add("oculto"); });
+  document.getElementById("btn-salvar-config").addEventListener("click", salvarConfig);
+  document.getElementById("btn-exportar-sessao").addEventListener("click", exportarSessao);
+  document.getElementById("btn-limpar-tudo").addEventListener("click", limparTodosDados);
+  const fileImportar = document.getElementById("file-importar-sessao");
+  if (fileImportar) fileImportar.addEventListener("change", (e) => importarSessao(e.target.files[0]));
+
+  document.getElementById("fechar-iniciativa").addEventListener("click", fecharModalIniciativa);
+  document.getElementById("btn-rolar-ini").addEventListener("click", rolarIniciativaModal);
+  document.getElementById("btn-confirmar-ini").addEventListener("click", confirmarIniciativaModal);
+  window.addEventListener("click", (e) => { if (e.target === document.getElementById("modal-iniciativa")) fecharModalIniciativa(); });
+  document.getElementById("modal-iniciativa").addEventListener("keydown", (e) => { if (e.key === "Enter") confirmarIniciativaModal(); });
+
+  document.getElementById("fechar-heroi").addEventListener("click", fecharModalHeroi);
+  document.getElementById("btn-confirmar-heroi").addEventListener("click", confirmarNovoHeroi);
+  window.addEventListener("click", (e) => { if (e.target === document.getElementById("modal-heroi")) fecharModalHeroi(); });
+  document.getElementById("modal-heroi").addEventListener("keydown", (e) => { if (e.key === "Enter") confirmarNovoHeroi(); });
+
   document.getElementById("btn-novo-monstro").addEventListener("click", abrirModalMonstro);
   document.getElementById("fechar-monstro").addEventListener("click", fecharModalMonstro);
   document.getElementById("btn-confirmar-monstro").addEventListener("click", confirmarNovoMonstro);
   window.addEventListener("click", (e) => { if (e.target === document.getElementById("modal-monstro")) fecharModalMonstro(); });
   document.getElementById("modal-monstro").addEventListener("keydown", (e) => { if (e.key === "Enter") confirmarNovoMonstro(); });
 
+  document.getElementById("fechar-dano-cura").addEventListener("click", fecharModalDanoCura);
+  document.getElementById("btn-confirmar-dano").addEventListener("click", confirmarDanoCura);
+  document.getElementById("btn-morto-modal").addEventListener("click", mortoViaModal);
+  document.getElementById("btn-rolar-dano-modal").addEventListener("click", rolarDadoModal);
+  document.getElementById("modal-dano-manual").addEventListener("input", atualizarPrevia);
+  document.getElementById("modal-dano-atacante").addEventListener("change", atualizarPrevia);
+  window.addEventListener("click", (e) => { if (e.target === document.getElementById("modal-dano-cura")) fecharModalDanoCura(); });
+  document.getElementById("modal-dano-cura").addEventListener("keydown", (e) => { if (e.key === "Enter") confirmarDanoCura(); });
+
+  document.getElementById("btn-abrir-area").addEventListener("click", abrirModalArea);
+  document.getElementById("fechar-area").addEventListener("click", fecharModalArea);
+  document.getElementById("btn-rolar-area").addEventListener("click", rolarDadoArea);
+  document.getElementById("btn-confirmar-area").addEventListener("click", confirmarDanoArea);
+  document.getElementById("btn-area-todos").addEventListener("click", () => selecionarTodosArea(true));
+  document.getElementById("btn-area-nenhum").addEventListener("click", () => selecionarTodosArea(false));
+  window.addEventListener("click", (e) => { if (e.target === document.getElementById("modal-area")) fecharModalArea(); });
+
+  document.getElementById("fechar-condicao-duracao").addEventListener("click", fecharModalCondicaoDuracao);
+  document.getElementById("btn-confirmar-condicao").addEventListener("click", confirmarCondicao);
+  window.addEventListener("click", (e) => { if (e.target === document.getElementById("modal-condicao-duracao")) fecharModalCondicaoDuracao(); });
+  document.getElementById("modal-condicao-duracao").addEventListener("keydown", (e) => { if (e.key === "Enter") confirmarCondicao(); });
+
+  document.getElementById("fechar-acerto").addEventListener("click", fecharModalAcerto);
+  document.getElementById("btn-rolar-acerto").addEventListener("click", rolarAcerto);
+  document.getElementById("btn-acerto-aplicar-dano").addEventListener("click", irParaDano);
+  document.getElementById("btn-acerto-pular").addEventListener("click", irParaDano);
+  window.addEventListener("click", (e) => { if (e.target === document.getElementById("modal-acerto")) fecharModalAcerto(); });
+
+  document.getElementById("btn-turno-anterior").addEventListener("click", turnoAnterior);
+  document.getElementById("btn-proximo-turno").addEventListener("click", proximoTurno);
+
+  document.addEventListener("click", () => {
+    document.querySelectorAll(".condicao-popover:not(.oculto)").forEach(p => p.classList.add("oculto"));
+  });
+
   atualizarIniciativa();
   renderizarStatusGrupo();
   atualizarPainelTurno();
+  aplicarConfig();
 
   const historicoSalvo = JSON.parse(localStorage.getItem("historicoRPG")) || [];
   historicoSalvo.forEach(e => renderizarItemHistorico(e.texto, e.tipo));
@@ -1480,48 +1812,13 @@ window.onload = () => {
     areaAnotacoes.addEventListener("input", () => localStorage.setItem("anotacoesRPG", areaAnotacoes.value));
   }
 
-  // Fecha qualquer popover de condição ao clicar fora
-  document.addEventListener("click", () => {
-    document.querySelectorAll(".condicao-popover:not(.oculto)")
-      .forEach(p => p.classList.add("oculto"));
-  });
-
-  // Modal de dano em área
-  document.getElementById("btn-abrir-area").addEventListener("click", abrirModalArea);
-  document.getElementById("fechar-area").addEventListener("click", fecharModalArea);
-  document.getElementById("btn-rolar-area").addEventListener("click", rolarDadoArea);
-  document.getElementById("btn-confirmar-area").addEventListener("click", confirmarDanoArea);
-  document.getElementById("btn-area-todos").addEventListener("click", () => selecionarTodosArea(true));
-  document.getElementById("btn-area-nenhum").addEventListener("click", () => selecionarTodosArea(false));
-  window.addEventListener("click", (e) => { if (e.target === document.getElementById("modal-area")) fecharModalArea(); });
-
-  // Modal de condição/duração
-  document.getElementById("fechar-condicao-duracao").addEventListener("click", fecharModalCondicaoDuracao);
-  document.getElementById("btn-confirmar-condicao").addEventListener("click", confirmarCondicao);
-  window.addEventListener("click", (e) => { if (e.target === document.getElementById("modal-condicao-duracao")) fecharModalCondicaoDuracao(); });
-  document.getElementById("modal-condicao-duracao").addEventListener("keydown", (e) => { if (e.key === "Enter") confirmarCondicao(); });
-
-  // Modal de dano/cura
-  document.getElementById("fechar-dano-cura").addEventListener("click", fecharModalDanoCura);
-  document.getElementById("btn-confirmar-dano").addEventListener("click", confirmarDanoCura);
-  document.getElementById("btn-morto-modal").addEventListener("click", mortoViaModal);
-  document.getElementById("btn-rolar-dano-modal").addEventListener("click", rolarDadoModal);
-  window.addEventListener("click", (e) => { if (e.target === document.getElementById("modal-dano-cura")) fecharModalDanoCura(); });
-  document.getElementById("modal-dano-cura").addEventListener("keydown", (e) => { if (e.key === "Enter") confirmarDanoCura(); });
-
-  // Tema dark/light
   const temaAtual = localStorage.getItem("temaRPG") || "dark";
   if (temaAtual === "light") document.body.classList.add("tema-light");
   atualizarBtnTema();
-
   document.getElementById("btn-tema").addEventListener("click", () => {
     document.body.classList.toggle("tema-light");
     const novoTema = document.body.classList.contains("tema-light") ? "light" : "dark";
     localStorage.setItem("temaRPG", novoTema);
     atualizarBtnTema();
   });
-
-  // Botões de controle de turno
-  document.getElementById("btn-turno-anterior").addEventListener("click", turnoAnterior);
-  document.getElementById("btn-proximo-turno").addEventListener("click", proximoTurno);
 };
