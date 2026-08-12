@@ -8,12 +8,20 @@ https://game-icons.net/
 
 Falta implementar:
 
-FEITO Quando rolar o dano e estiver na vez da pessoa, vai aparecer no chat o nome + dano. Posso talvez colocar também quem levou o dano. Colocar uma previa do que vai ocorrer, na janela.
-FEITO Deixar o fundo do card do personagem no turno atual na cor dele mesmo.
-FEITO Vamos mexer no modo light
+Mudar botão de iniciativa para on click Virar o número
+EXP bordinha enchendo
+Histórico mais alto e fino, finura do combate
+Anotações pra direita mais alto e mais fino
+Botão status e grupo e controle de turno ficam com o que sobrar
+Lista de monstros adicionar janela no combate
+Dice roller flutuante ou cabeçalho
+Horrio no historico
+Onde tá a cor do heroi vai virar barra de vida
+Cor do heroi fica no nome e no fundo do card
+
 Fazer um modo inglês
 Fazer modo celular
-FEITO Monstros colocar em ordem alfabética
+
 
 
 ===================
