@@ -115,6 +115,13 @@ body {
   background-color: var(--border-default);
 }
 
+.logo-img {
+  width: 302px;
+  height: 32px;
+  vertical-align: middle;
+  margin-right: 8px;
+}
+
 /* ==========================================================================
    3. LAYOUT PRINCIPAL (DASHBOARD)
    ========================================================================== */
