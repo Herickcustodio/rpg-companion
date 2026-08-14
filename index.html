@@ -377,73 +377,106 @@
       </div>
     </div>
 
+    <!-- Modal Coletânea de Monstros -->
+    <div id="modal-monstros-lista" class="modal oculto">
+      <div class="modal-conteudo modal-monstros-conteudo">
+        <span class="fechar-modal" id="fechar-monstros-lista">&times;</span>
+        <h2>⚔️ Adicionar Monstro ao Combate</h2>
+        <div class="modal-monstros-header">
+          <input type="text" id="busca-monstros" class="input-busca-monstros-modal" placeholder="🔍 Buscar monstro..." />
+          <button id="btn-novo-monstro" class="btn-novo-monstro-cab">+ Criar</button>
+        </div>
+        <div id="conteudo-monstros" class="modal-monstros-lista"></div>
+      </div>
+    </div>
+
   </header>
 
   <main class="dashboard">
 
     <section class="painel iniciativa">
-      <div class="painel-cabecalho">
-        <h2>Combate</h2>
-        <div style="display:flex;gap:6px;">
+      <div class="painel-combate-topo">
+        <div class="painel-combate-esquerda">
+          <h2>Combate</h2>
+          <button id="btn-abrir-monstros" class="btn-abrir-monstros">⚔️ Adicionar Monstro</button>
           <button class="btn-area-cab" id="btn-abrir-area" title="Dano em área">💥 Área</button>
-          <button class="btn-limpar-combate" onclick="limparIniciativa()">Limpar Combate</button>
         </div>
+        <div class="painel-combate-rodada">
+          <span class="rodada-label">RODADA</span>
+          <span id="combate-rodada-num" class="rodada-num">1</span>
+        </div>
+        <button class="btn-limpar-combate" onclick="limparIniciativa()">Limpar Combate</button>
       </div>
       <div id="lista-iniciativa-conteudo"></div>
     </section>
 
-    <section class="painel rolador">
-      <h2>Rolador de Dados</h2>
-      <div class="botoes-dados">
-        <button onclick="rolarDado(4)" title="Rolar d4"><img src="img/d4.png" alt="d4"></button>
-        <button onclick="rolarDado(6)" title="Rolar d6"><img src="img/d6.png" alt="d6"></button>
-        <button onclick="rolarDado(8)" title="Rolar d8"><img src="img/d8.png" alt="d8"></button>
-        <button onclick="rolarDado(10)" title="Rolar d10"><img src="img/d10.png" alt="d10"></button>
-        <button onclick="rolarDado(12)" title="Rolar d12"><img src="img/d12.png" alt="d12"></button>
-        <button onclick="rolarDado(20)" title="Rolar d20"><img src="img/d20.png" alt="d20"></button>
-        <button onclick="rolarDado(100)" title="Rolar d100"><img src="img/d100.png" alt="d100"></button>
-        <div class="controle-modificador">
-          <label for="quantidade">Qtd:</label>
-          <input type="number" id="quantidade" value="1" min="1">
-          <label for="modificador">Modificador:</label>
-          <input type="number" id="modificador" value="0">
+    <section class="painel painel-tabs" id="painel-dados-anotacoes">
+      <div class="mini-navbar" role="tablist" aria-label="Ferramentas de sessão">
+        <button class="mini-navbar__btn mini-navbar__btn--active" type="button" data-tab="dados" role="tab" aria-selected="true">Dados</button>
+        <button class="mini-navbar__btn" type="button" data-tab="anotacoes" role="tab" aria-selected="false">Anotações</button>
+      </div>
+
+      <div class="tab-panel tab-panel--active" id="tab-dados">
+        <div class="botoes-dados">
+          <button onclick="rolarDado(4)" title="Rolar d4"><img src="img/d4.png" alt="d4"></button>
+          <button onclick="rolarDado(6)" title="Rolar d6"><img src="img/d6.png" alt="d6"></button>
+          <button onclick="rolarDado(8)" title="Rolar d8"><img src="img/d8.png" alt="d8"></button>
+          <button onclick="rolarDado(10)" title="Rolar d10"><img src="img/d10.png" alt="d10"></button>
+          <button onclick="rolarDado(12)" title="Rolar d12"><img src="img/d12.png" alt="d12"></button>
+          <button onclick="rolarDado(20)" title="Rolar d20"><img src="img/d20.png" alt="d20"></button>
+          <button onclick="rolarDado(100)" title="Rolar d100"><img src="img/d100.png" alt="d100"></button>
+          <div class="controle-modificador">
+            <label for="quantidade">Qtd:</label>
+            <input type="number" id="quantidade" value="1" min="1">
+            <label for="modificador">Modificador:</label>
+            <input type="number" id="modificador" value="0">
+          </div>
+        </div>
+        <div id="resultado-dado">
+          <span class="label">Resultado:</span>
+          <span class="valor">-</span>
         </div>
       </div>
-      <div id="resultado-dado">
-        <span class="label">Resultado:</span>
-        <span class="valor">-</span>
-      </div>
-    </section>
 
-    <section class="painel anotacoes">
-      <h2>Anotações</h2>
-      <textarea id="campo-anotacoes" placeholder="Digite suas anotações aqui..."></textarea>
+      <div class="tab-panel" id="tab-anotacoes">
+        <textarea id="campo-anotacoes" placeholder="Digite suas anotações aqui..."></textarea>
+      </div>
     </section>
 
     <section class="painel turno">
       <h2>Controle de Turno</h2>
 
-      <!-- Rodada atual -->
-      <div class="turno-rodada-wrap">
-        <span class="turno-rodada-label">Rodada</span>
-        <span id="turno-rodada-num" class="turno-rodada-num">1</span>
-      </div>
-
-      <!-- Botões anterior/próximo -->
-      <div class="turno-controles">
-        <button id="btn-turno-anterior" class="btn-turno btn-turno--anterior">◀ Anterior</button>
-        <button id="btn-proximo-turno"  class="btn-turno btn-turno--proximo">Próximo ▶</button>
-      </div>
-
       <!-- Combatente ativo em destaque -->
       <div id="turno-ativo-card" class="turno-ativo-card oculto">
-        <div class="turno-ativo-nome" id="turno-ativo-nome">—</div>
-        <div class="turno-ativo-detalhes" id="turno-ativo-detalhes"></div>
-        <div class="barra-hp-wrap" style="margin-top:6px;">
-          <div id="turno-ativo-barra" class="barra-hp-fill" style="width:100%;background:#2ecc71;"></div>
+        <div class="turno-ativo-cabecalho">
+          <div class="turno-ativo-header">
+            <div class="turno-ativo-info">
+              <div class="turno-ativo-nome" id="turno-ativo-nome">—</div>
+              <div class="turno-ativo-detalhes" id="turno-ativo-detalhes"></div>
+            </div>
+            <button id="btn-remover-turno-ativo" class="btn-remover-turno" style="display:none;">✕</button>
+          </div>
+          <div class="barra-hp-wrap" style="margin-top:6px;">
+            <div id="turno-ativo-barra" class="barra-hp-fill" style="width:100%;background:#2ecc71;"></div>
+          </div>
+        </div>
+
+        <!-- Botões de ação -->
+        <div class="turno-ativo-acoes">
+          <button id="btn-turno-ataque" class="btn-turno-acao btn-turno-acao--ataque">⚔️ Ataque</button>
+          <button id="btn-turno-condicao" class="btn-turno-acao btn-turno-acao--condicao">🔖 Condição</button>
+          <button id="btn-turno-cura" class="btn-turno-acao btn-turno-acao--cura">💚 Cura</button>
+          <button id="btn-turno-morto" class="btn-turno-acao btn-turno-acao--morto">☠️ Morto</button>
         </div>
       </div>
       <div id="turno-vazio-msg" class="turno-dica">Adicione combatentes e avance o turno.</div>
+
+      <!-- Botões de controle turno -->
+      <div class="turno-controles">
+        <button id="btn-turno-anterior" class="btn-turno btn-turno--anterior">◀ Voltar Turno</button>
+        <button id="btn-proximo-turno"  class="btn-turno btn-turno--proximo">Finalizar Turno ▶</button>
+        <button id="btn-config-turno" class="btn-config-turno" title="Configurações">⚙️</button>
+      </div>
 
       <!-- Condições ativas de todos os combatentes -->
       <div class="turno-efeitos-header">
@@ -462,19 +495,11 @@
     </section>
 
     <section class="painel status">
-      <h2>Vida e Status do Grupo</h2>
-      <div id="conteudo-status-grupo"></div>
-    </section>
-
-    <section class="painel monstros">
-      <div class="painel-cabecalho">
-        <h2>Coletânea de Monstros</h2>
-        <div class="monstros-cabecalho-controles">
-          <input type="text" id="busca-monstros" class="input-busca-monstros" placeholder="🔍 Buscar...">
-          <button id="btn-novo-monstro" class="btn-novo-monstro-cab" title="Criar monstro customizado">+ Criar</button>
-        </div>
+      <div class="painel-cabecalho painel-cabecalho--status">
+        <h2>Vida e Status do Grupo</h2>
+        <button id="btn-novo-heroi-status" class="btn-novo-heroi-status">+ Criar Novo Herói</button>
       </div>
-      <div id="conteudo-monstros"></div>
+      <div id="conteudo-status-grupo"></div>
     </section>
 
   </main>

@@ -127,8 +127,8 @@ body {
    ========================================================================== */
 .dashboard {
   display: grid;
-  grid-template-columns: 300px 1fr 1fr 1fr;
-  grid-template-rows: 1fr 1fr;
+  grid-template-columns: 460px 1fr 1fr;
+  grid-template-rows: auto 1fr 1fr;
   gap: 8px;
   padding: 8px;
   height: calc(100vh - 55px);
@@ -139,7 +139,7 @@ body {
   background: var(--bg-painel);
   border: 1px solid var(--border-default);
   border-radius: 8px;
-  padding: 6px;
+  padding: 0;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
   transition: border-color 0.2s, transform 0.2s, background 0.3s;
   display: flex;
@@ -148,11 +148,10 @@ body {
 }
 
 .painel h2 {
-  margin-top: 0;
-  margin-bottom: 8px;
-  font-size: 18px;
+  margin: 0 0 8px 0;
+  font-size: 16px;
   border-bottom: 1px solid var(--border-default);
-  padding-bottom: 5px;
+  padding-bottom: 8px;
   flex-shrink: 0;
   color: var(--text-primary);
 }
@@ -162,7 +161,7 @@ body {
   justify-content: space-between;
   align-items: center;
   border-bottom: 1px solid var(--border-default);
-  padding-bottom: 5px;
+  padding-bottom: 8px;
   margin-bottom: 8px;
   flex-shrink: 0;
 }
@@ -171,70 +170,166 @@ body {
   margin: 0;
   border-bottom: none;
   padding-bottom: 0;
+  font-size: 16px;
+}
+
+.painel-cabecalho--status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 10px;
 }
 
 .painel:hover {
-  border-color: var(--text-muted);
-  transform: scale(1.01);
+  border-color: var(--border-default);
+  transform: none;
 }
 
 /* ==========================================================================
    4. POSICIONAMENTO DOS PAINÉIS
    ========================================================================== */
 .iniciativa {
-  grid-column: 1;
-  grid-row: 1 / 3;
-  overflow-y: auto;
+  grid-column: 1 / -1;
+  grid-row: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  padding: 0;
 }
 
-.rolador {
-  grid-column: 2;
-  grid-row: 1;
+#lista-iniciativa-conteudo {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: flex-start;
+  gap: 12px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  min-height: 0;
+  min-width: 0;
+  width: 100%;
+  padding: 12px;
+}
+
+.painel-combate-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 12px 12px;
+  margin: 0;
+  border-bottom: 1px solid var(--border-default);
+  flex-shrink: 0;
+  background: var(--bg-painel);
+}
+
+.painel-combate-esquerda {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.painel-combate-esquerda h2 {
+  margin: 0;
+  border: none;
+  padding: 0;
+  font-size: 18px;
+  font-weight: bold;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.painel-combate-rodada {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  flex: 1;
+  padding: 0;
+}
+
+.rodada-label {
+  font-size: 10px;
+  color: #999;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: bold;
+}
+
+.rodada-num {
+  font-size: 2.5rem;
+  font-weight: bold;
+  color: #5aabff;
+  line-height: 1;
+  margin: 0;
+}
+
+.painel-iniciativa-acoes {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border-default);
+  flex-shrink: 0;
+}
+
+.painel-tabs {
+  grid-column: 3;
+  grid-row: 2 / 4;
+  padding: 12px;
 }
 
 .anotacoes {
-  grid-column: 3;
-  grid-row: 1;
-  min-height: 0;
+  display: none;
 }
 
 .turno {
-  grid-column: 4;
-  grid-row: 1;
-  overflow-y: auto;
-}
-
-.historico {
   grid-column: 2;
   grid-row: 2;
   overflow-y: auto;
+  padding: 12px;
+}
+
+.historico {
+  grid-column: 1;
+  grid-row: 2 / 4;
+  overflow-y: auto;
+  padding: 12px;
 }
 
 .status {
-  grid-column: 3;
-  grid-row: 2;
+  grid-column: 2;
+  grid-row: 3;
   overflow-y: auto;
+  padding: 12px;
 }
 
-.monstros {
+/* .monstros {
   grid-column: 4;
   grid-row: 2;
   overflow-y: auto;
-}
+} */
 
 /* ==========================================================================
    5. INICIATIVA
    ========================================================================== */
 .btn-limpar-combate {
-  padding: 4px 10px;
+  padding: 8px 16px;
   background: #8b1a1a;
-  color: var(--text-clean_combat);
+  color: #fff;
   border: 1px solid #c0392b;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 13px;
+  font-weight: bold;
   transition: background 0.2s;
   flex-shrink: 0;
+  white-space: nowrap;
+  margin-left: auto;
 }
 
 .btn-limpar-combate:hover {
@@ -243,12 +338,15 @@ body {
 
 /* Item base */
 .item-iniciativa {
-  padding: 8px 10px;
+  padding: 12px;
   border: 1px solid var(--border-light);
   border-radius: 6px;
-  margin-bottom: 8px;
+  margin-bottom: 0;
   background: var(--bg-card);
   transition: border-color 0.2s, background 0.2s;
+  min-width: 180px;
+  max-width: 200px;
+  flex-shrink: 0;
 }
 
 .turno-ativo-card {
@@ -305,13 +403,14 @@ body.tema-light .turno-ativo-card {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 2px;
+  margin-bottom: 8px;
 }
 
 .item-iniciativa-nome {
   font-weight: bold;
   color: var(--text-primary);
-  font-size: 1.05em;
+  font-size: 0.95em;
+  flex: 1;
 }
 
 .item-iniciativa--ativo .item-iniciativa-nome {
@@ -327,6 +426,7 @@ body.tema-light .turno-ativo-card {
   padding: 2px 4px;
   line-height: 1;
   transition: color 0.15s;
+  flex-shrink: 0;
 }
 
 .btn-remover-ini:hover {
@@ -336,14 +436,16 @@ body.tema-light .turno-ativo-card {
 .btn-morte-ini {
   background: none;
   border: 1px dashed #555;
-  border-radius: 4px;
+  border-radius: 3px;
   cursor: pointer;
-  font-size: 13px;
-  padding: 3px 8px;
+  font-size: 11px;
+  padding: 2px 6px;
   opacity: 0.5;
   transition: opacity 0.15s, border-color 0.15s;
-  line-height: 1.4;
+  line-height: 1.2;
   color: #ccc;
+  flex: 1;
+  min-width: 40px;
 }
 
 .btn-morte-ini:hover {
@@ -368,8 +470,9 @@ body.tema-light .turno-ativo-card {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 6px;
-  margin-top: 2px;
+  gap: 4px;
+  margin-top: 6px;
+  flex-wrap: wrap;
 }
 
 /* Botões de ação (dano/cura/morte) agrupados */
@@ -377,6 +480,7 @@ body.tema-light .turno-ativo-card {
   display: flex;
   gap: 4px;
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .btn-acao-ini {
@@ -385,9 +489,11 @@ body.tema-light .turno-ativo-card {
   cursor: pointer;
   font-size: 11px;
   font-weight: bold;
-  padding: 3px 7px;
+  padding: 4px 8px;
   transition: background 0.15s, opacity 0.15s;
-  line-height: 1.4;
+  line-height: 1.2;
+  flex: 1;
+  min-width: 60px;
 }
 
 .btn-acao-dano {
@@ -639,15 +745,16 @@ body.tema-light .previa-cura { color: #16a34a; }
 
 .item-iniciativa-valor {
   color: #28a745;
-  font-size: 0.8em;
+  font-size: 0.75em;
   font-weight: bold;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
   display: block;
 }
 
 .item-ini-ca {
   color: #5aabff;
-  font-size: 0.95em;
+  font-size: 0.85em;
+  font-weight: bold;
 }
 
 /* Barra de HP */
@@ -656,7 +763,7 @@ body.tema-light .previa-cura { color: #16a34a; }
   background: var(--bg-card2);
   border-radius: 3px;
   overflow: hidden;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .barra-hp-fill {
@@ -670,7 +777,7 @@ body.tema-light .previa-cura { color: #16a34a; }
   display: flex;
   align-items: center;
   gap: 4px;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .label-hp {
@@ -721,22 +828,23 @@ body.tema-light .previa-cura { color: #16a34a; }
 .item-ini-tags-ativas {
   display: flex;
   flex-wrap: wrap;
-  gap: 4px;
+  gap: 3px;
   margin-bottom: 6px;
 }
 
 .tag-ativa {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
+  gap: 2px;
   background: var(--bg-tag-cond);
   border: 1px solid var(--yellow);
-  border-radius: 4px;
-  padding: 2px 7px;
-  font-size: 12px;
+  border-radius: 3px;
+  padding: 2px 5px;
+  font-size: 10px;
   color: var(--yellow);
   cursor: pointer;
   transition: background 0.15s;
+  white-space: nowrap;
 }
 
 .tag-ativa:hover {
@@ -835,8 +943,8 @@ body.tema-light .previa-cura { color: #16a34a; }
   background: var(--bg-card);
   border: 1px solid var(--border-light);
   border-radius: 8px;
-  padding: 8px 12px;
-  margin-bottom: 8px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
 }
 
 .turno-rodada-label {
@@ -861,8 +969,8 @@ body.tema-light .previa-cura { color: #16a34a; }
   border: 1px solid #064D9F;
   border-left: 4px solid #5aabff;
   border-radius: 8px;
-  padding: 10px 12px;
-  margin-bottom: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
   animation: pulso-ativo 2s ease-in-out infinite;
 }
 
@@ -871,11 +979,27 @@ body.tema-light .previa-cura { color: #16a34a; }
   50%       { box-shadow: 0 0 8px 2px rgba(90, 171, 255, 0.2); }
 }
 
+.turno-ativo-cabecalho {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border-light);
+}
+
 .turno-ativo-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  margin-bottom: 6px;
+  gap: 8px;
+}
+
+.turno-ativo-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
 .turno-ativo-badge {
@@ -925,11 +1049,78 @@ body.tema-light .previa-cura { color: #16a34a; }
   color: var(--yellow);
 }
 
+/* Botões de ação no painel de turno */
+.turno-ativo-acoes {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin-top: 0;
+}
+
+.btn-turno-acao {
+  padding: 8px 10px;
+  border: 1px solid var(--border-light);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: bold;
+  transition: all 0.15s;
+  flex-shrink: 0;
+  white-space: nowrap;
+  background: var(--bg-card2);
+  color: var(--text-primary);
+}
+
+.btn-turno-acao--ataque {
+  background: #5a1a1a;
+  color: #ffaaaa;
+  border-color: #8b2a2a;
+}
+
+.btn-turno-acao--ataque:hover {
+  background: #8b2a2a;
+  color: #fff;
+}
+
+.btn-turno-acao--condicao {
+  background: #064D9F;
+  color: white;
+  border-color: #064D9F;
+}
+
+.btn-turno-acao--condicao:hover {
+  background: #0a65cc;
+}
+
+.btn-turno-acao--cura {
+  background: #1a3a1a;
+  color: #88dd88;
+  border-color: #2a6a2a;
+}
+
+.btn-turno-acao--cura:hover {
+  background: #2a6a2a;
+  color: #fff;
+}
+
+.btn-turno-acao--morto {
+  background: #3a1a1a;
+  color: #ddd;
+  border-color: #555;
+  grid-column: 1 / -1;
+}
+
+.btn-turno-acao--morto:hover {
+  background: #5a2a2a;
+  color: #fff;
+}
+
 
 .turno-controles {
   display: flex;
   gap: 8px;
-  margin-top: 4px;
+  margin-top: 10px;
+  margin-bottom: 12px;
 }
 
 .btn-turno--proximo {
@@ -944,7 +1135,6 @@ body.tema-light .previa-cura { color: #16a34a; }
   flex: 1;
   padding: 10px;
   background: var(--bg-card2);
-  /* color: var(--text-primary); */
   border: 1px solid var(--border-input);
   border-radius: 4px;
   cursor: pointer;
@@ -966,6 +1156,38 @@ body.tema-light .previa-cura { color: #16a34a; }
   background: #0a65cc;
 }
 
+.btn-config-turno {
+  padding: 10px 12px;
+  background: var(--bg-card2);
+  color: var(--text-primary);
+  border: 1px solid var(--border-input);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.btn-config-turno:hover {
+  background: var(--border-default);
+}
+
+.btn-remover-turno {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 16px;
+  padding: 2px 4px;
+  line-height: 1;
+  transition: color 0.15s;
+  flex-shrink: 0;
+}
+
+.btn-remover-turno:hover {
+  color: #ff6b6b;
+}
+
 .turno-dica {
   font-size: 11px;
   color: var(--text-faint);
@@ -978,17 +1200,18 @@ body.tema-light .previa-cura { color: #16a34a; }
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 10px;
+  margin-top: 8px;
   margin-bottom: 6px;
-  padding-top: 8px;
+  padding-top: 6px;
   border-top: 1px solid var(--border-light);
 }
 
 .turno-efeitos-titulo {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  font-weight: bold;
 }
 
 .btn-add-efeito {
@@ -1143,6 +1366,45 @@ body.tema-light .previa-cura { color: #16a34a; }
 /* ==========================================================================
    6. ROLADOR DE DADOS
    ========================================================================== */
+.mini-navbar {
+  display: flex;
+  gap: 8px;
+  padding: 8px;
+  margin-bottom: 12px;
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
+  background: var(--bg-card2);
+}
+
+.mini-navbar__btn {
+  flex: 1;
+  padding: 8px 10px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.mini-navbar__btn--active {
+  background: var(--bg-card);
+  border-color: var(--border-default);
+  color: var(--text-primary);
+}
+
+.tab-panel {
+  display: none;
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
+}
+
+.tab-panel--active {
+  display: block;
+}
+
 .botoes-dados {
   display: flex;
   flex-wrap: wrap;
@@ -1226,22 +1488,23 @@ body.tema-light .previa-cura { color: #16a34a; }
 /* ==========================================================================
    8. ANOTAÇÕES
    ========================================================================== */
-.anotacoes textarea {
+#tab-anotacoes textarea {
   flex: 1;
   width: 100%;
   min-height: 0;
   background: var(--bg-input);
   color: var(--text-primary);
   border: 1px solid var(--border-input);
-  border-radius: 5px;
-  padding: 8px;
+  border-radius: 8px;
+  padding: 10px 12px;
   resize: none;
   box-sizing: border-box;
   font-family: Arial, sans-serif;
   font-size: 14px;
+  min-height: 220px;
 }
 
-.anotacoes textarea:focus {
+#tab-anotacoes textarea:focus {
   outline: none;
   border-color: var(--accent);
 }
@@ -1252,6 +1515,13 @@ body.tema-light .previa-cura { color: #16a34a; }
 #log-historico {
   overflow-y: auto;
   flex: 1;
+  padding: 0 4px;
+}
+
+#conteudo-status-grupo {
+  overflow-y: auto;
+  flex: 1;
+  padding: 0 4px;
 }
 
 .log-item {
@@ -1281,23 +1551,25 @@ body.tema-light .log-item.sucesso { color: #16a34a; }
 /* ==========================================================================
    10. STATUS DO GRUPO
    ========================================================================== */
-.btn-novo-heroi {
-  width: 100%;
-  padding: 8px;
-  margin-bottom: 12px;
+.btn-novo-heroi-status {
+  padding: 8px 12px;
   background: var(--accent);
   color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   font-weight: bold;
-  font-size: 14px;
+  font-size: 13px;
   flex-shrink: 0;
   transition: background 0.2s;
 }
 
-.btn-novo-heroi:hover {
+.btn-novo-heroi-status:hover {
   background: var(--accent-hover);
+}
+
+.btn-novo-heroi {
+  display: none;
 }
 
 .card-heroi {
@@ -1631,6 +1903,14 @@ body.tema-light .log-item.sucesso { color: #16a34a; }
   z-index: 999;
 }
 
+#modal-monstros-lista {
+  z-index: 1001;
+}
+
+#modal-iniciativa {
+  z-index: 1100;
+}
+
 .oculto {
   display: none;
 }
@@ -1644,6 +1924,41 @@ body.tema-light .log-item.sucesso { color: #16a34a; }
   max-width: 500px;
   box-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
   position: relative;
+  max-height: 85vh;
+  overflow: hidden;
+}
+
+.modal-monstros-conteudo {
+  width: min(92vw, 620px);
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-monstros-header {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  position: sticky;
+  top: 0;
+  background: var(--bg-modal);
+  z-index: 1;
+  padding-top: 2px;
+}
+
+.modal-monstros-lista {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(180px, 1fr));
+  gap: 8px;
+  overflow-y: auto;
+  max-height: 58vh;
+  min-height: 0;
+  padding-right: 4px;
+  align-items: stretch;
+}
+
+.item-monstro {
+  min-height: 90px;
 }
 
 .fechar-modal {
@@ -1744,17 +2059,36 @@ body.tema-light .log-item.sucesso { color: #16a34a; }
   color: #e63946;
 }
 
+.btn-abrir-monstros {
+  padding: 8px 14px;
+  background: #064D9F;
+  color: white;
+  border: 1px solid #064D9F;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: bold;
+  transition: background 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.btn-abrir-monstros:hover {
+  background: #0a65cc;
+}
+
 .btn-area-cab {
-  padding: 4px 10px;
+  padding: 8px 14px;
   background: #5a1a1a;
   color: #ffaaaa;
   border: 1px solid #8b2a2a;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: bold;
   transition: background 0.2s;
   flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .btn-area-cab:hover {

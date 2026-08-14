@@ -180,6 +180,21 @@ function abrirModalMonstro() {
   document.getElementById("monstro-nome").focus();
 }
 
+function abrirModalMonstrosLista() {
+  const modal = document.getElementById("modal-monstros-lista");
+  const busca = document.getElementById("busca-monstros");
+  if (modal) modal.classList.remove("oculto");
+  if (busca) {
+    renderizarColetanea(busca.value || "");
+    setTimeout(() => busca.focus(), 0);
+  }
+}
+
+function fecharModalMonstrosLista() {
+  const modal = document.getElementById("modal-monstros-lista");
+  if (modal) modal.classList.add("oculto");
+}
+
 function fecharModalMonstro() {
   document.getElementById("modal-monstro").classList.add("oculto");
 }
@@ -985,8 +1000,78 @@ function turnoAnterior() {
   salvarESincronizar();
 }
 
+/* ==========================================================================
+   BOTÕES DE AÇÃO DO PAINEL DE TURNO
+   ========================================================================== */
+function abrirTurnoAcaoAtaque() {
+  const atual = listaDeIniciativa[turnoAtivo];
+  if (!atual) return;
+  if (config.etapaAcerto) abrirModalAcerto(atual.id);
+  else abrirModalDanoCura(atual.id, "dano");
+}
+
+function abrirTurnoAcaoCondicao() {
+  const atual = listaDeIniciativa[turnoAtivo];
+  if (!atual) return;
+
+  // Remove popover anterior se existir
+  const popoverAnterior = document.getElementById("turno-condicoes-popover");
+  if (popoverAnterior) popoverAnterior.remove();
+
+  // Cria popover de condições
+  const popover = document.createElement("div");
+  popover.id = "turno-condicoes-popover";
+  popover.className = "condicao-popover";
+  popover.style.position = "fixed";
+  popover.style.zIndex = "1000";
+
+  CONDICOES.forEach(cond => {
+    const ativa = (atual.condicoes || []).some(c => c.id === cond.id);
+    const opcao = document.createElement("button");
+    opcao.className = "condicao-opcao" + (ativa ? " condicao-opcao--ativa" : "");
+    opcao.title     = cond.descricao;
+    opcao.innerHTML = `<span class="cond-emoji">${cond.emoji}</span><span class="cond-label">${cond.label}</span>`;
+    opcao.addEventListener("click", (e) => {
+      e.stopPropagation();
+      popover.remove();
+      toggleCondicao(atual.id, cond.id);
+    });
+    popover.appendChild(opcao);
+  });
+
+  document.body.appendChild(popover);
+
+  // Posiciona logo acima do botão
+  const btnCondicao = document.getElementById("btn-turno-condicao");
+  const rect = btnCondicao.getBoundingClientRect();
+  popover.style.top  = (rect.top - popover.offsetHeight - 6) + "px";
+  popover.style.left = rect.left + "px";
+
+  // Fecha ao clicar fora
+  const fecharPopover = (e) => {
+    if (!popover.contains(e.target) && e.target !== btnCondicao) {
+      popover.remove();
+      document.removeEventListener("click", fecharPopover);
+    }
+  };
+  setTimeout(() => document.addEventListener("click", fecharPopover), 0);
+}
+
+function abrirTurnoAcaoCura() {
+  const atual = listaDeIniciativa[turnoAtivo];
+  if (!atual) return;
+  abrirModalDanoCura(atual.id, "cura");
+}
+
+function abrirTurnoAcaoMorto() {
+  const atual = listaDeIniciativa[turnoAtivo];
+  if (!atual) return;
+  marcarMorto(atual.id);
+}
+
 function atualizarPainelTurno() {
   const numEl   = document.getElementById("turno-rodada-num");
+  const combateRodadaEl = document.getElementById("combate-rodada-num");
   const cardEl  = document.getElementById("turno-ativo-card");
   const vazioEl = document.getElementById("turno-vazio-msg");
   const nomeEl  = document.getElementById("turno-ativo-nome");
@@ -994,6 +1079,7 @@ function atualizarPainelTurno() {
   const barraEl = document.getElementById("turno-ativo-barra");
 
   if (numEl) numEl.textContent = rodadaAtual;
+  if (combateRodadaEl) combateRodadaEl.textContent = rodadaAtual;
 
   if (listaDeIniciativa.length === 0) {
     if (cardEl)  cardEl.classList.add("oculto");
@@ -1353,12 +1439,6 @@ function renderizarStatusGrupo() {
   const container = document.getElementById("conteudo-status-grupo");
   if (!container) return;
   container.innerHTML = "";
-
-  const btnAdd = document.createElement("button");
-  btnAdd.textContent = "+ Criar Novo Herói";
-  btnAdd.className   = "btn-novo-heroi";
-  btnAdd.addEventListener("click", () => abrirModalHeroi());
-  container.appendChild(btnAdd);
 
   partyHerois.forEach(heroi => {
     const naIni    = listaDeIniciativa.find(c => c.idHeroi === heroi.id);
@@ -1737,6 +1817,24 @@ window.onload = () => {
   configurarModal("btn-sobre", "modal-sobre", "fechar-sobre");
   configurarModal("btn-ajuda", "modal-ajuda", "fechar-ajuda");
 
+  document.querySelectorAll(".mini-navbar__btn").forEach(botao => {
+    botao.addEventListener("click", () => {
+      const tab = botao.dataset.tab;
+      document.querySelectorAll(".mini-navbar__btn").forEach(btn => {
+        const ativo = btn === botao;
+        btn.classList.toggle("mini-navbar__btn--active", ativo);
+        btn.setAttribute("aria-selected", String(ativo));
+      });
+
+      document.querySelectorAll(".tab-panel").forEach(painel => {
+        painel.classList.toggle("tab-panel--active", painel.id === `tab-${tab}`);
+      });
+    });
+  });
+
+  const btnNovoHeroiStatus = document.getElementById("btn-novo-heroi-status");
+  if (btnNovoHeroiStatus) btnNovoHeroiStatus.addEventListener("click", () => abrirModalHeroi());
+
   document.getElementById("btn-config").addEventListener("click", abrirModalConfig);
   document.getElementById("fechar-config").addEventListener("click", () => document.getElementById("modal-config").classList.add("oculto"));
   window.addEventListener("click", (e) => { if (e.target === document.getElementById("modal-config")) document.getElementById("modal-config").classList.add("oculto"); });
@@ -1756,6 +1854,13 @@ window.onload = () => {
   document.getElementById("btn-confirmar-heroi").addEventListener("click", confirmarNovoHeroi);
   window.addEventListener("click", (e) => { if (e.target === document.getElementById("modal-heroi")) fecharModalHeroi(); });
   document.getElementById("modal-heroi").addEventListener("keydown", (e) => { if (e.key === "Enter") confirmarNovoHeroi(); });
+
+  document.getElementById("btn-abrir-monstros").addEventListener("click", abrirModalMonstrosLista);
+  document.getElementById("fechar-monstros-lista").addEventListener("click", fecharModalMonstrosLista);
+  window.addEventListener("click", (e) => {
+    const modal = document.getElementById("modal-monstros-lista");
+    if (e.target === modal) fecharModalMonstrosLista();
+  });
 
   document.getElementById("btn-novo-monstro").addEventListener("click", abrirModalMonstro);
   document.getElementById("fechar-monstro").addEventListener("click", fecharModalMonstro);
@@ -1793,6 +1898,12 @@ window.onload = () => {
 
   document.getElementById("btn-turno-anterior").addEventListener("click", turnoAnterior);
   document.getElementById("btn-proximo-turno").addEventListener("click", proximoTurno);
+
+  // Botões de ação do painel de turno
+  document.getElementById("btn-turno-ataque").addEventListener("click", abrirTurnoAcaoAtaque);
+  document.getElementById("btn-turno-condicao").addEventListener("click", abrirTurnoAcaoCondicao);
+  document.getElementById("btn-turno-cura").addEventListener("click", abrirTurnoAcaoCura);
+  document.getElementById("btn-turno-morto").addEventListener("click", abrirTurnoAcaoMorto);
 
   document.addEventListener("click", () => {
     document.querySelectorAll(".condicao-popover:not(.oculto)").forEach(p => p.classList.add("oculto"));
