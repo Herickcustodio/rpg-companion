@@ -92,7 +92,12 @@ body {
 
 .cabecalho-topo h1 {
   margin: 0;
-  font-size: 1.5rem;
+  font-size: 1.7rem;
+  font-weight: 800;
+  color: var(--accent-hover);
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
 }
 
 .menu-controles {
@@ -103,16 +108,28 @@ body {
 .btn-topo {
   background-color: var(--bg-card2);
   color: var(--text-primary);
-  border: 1px solid var(--accent);
-  padding: 8px 15px;
+  border: 1px solid var(--border-input);
+  padding: 8px 16px;
   cursor: pointer;
-  border-radius: 4px;
+  border-radius: 8px;
   font-weight: bold;
-  transition: background 0.2s;
+  transition: background 0.2s, border-color 0.2s;
 }
 
 .btn-topo:hover {
   background-color: var(--border-default);
+  border-color: var(--accent);
+}
+
+#btn-tema {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+
+#btn-tema:hover {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
 }
 
 .logo-img {
@@ -129,8 +146,8 @@ body {
   display: grid;
   grid-template-columns: 460px 1fr 1fr;
   grid-template-rows: auto 1fr 1fr;
-  gap: 8px;
-  padding: 8px;
+  gap: 5px;
+  padding: 5px;
   height: calc(100vh - 55px);
   box-sizing: border-box;
 }
@@ -154,6 +171,12 @@ body {
   padding-bottom: 8px;
   flex-shrink: 0;
   color: var(--text-primary);
+}
+
+.painel.turno {
+  padding: 12px;
+  gap: 12px;
+  min-height: 0;
 }
 
 .painel-cabecalho {
@@ -196,6 +219,9 @@ body {
   flex-direction: column;
   overflow: hidden;
   padding: 0;
+  min-height: 220px;
+  height: 220px;
+  width: 100%;
 }
 
 #lista-iniciativa-conteudo {
@@ -210,19 +236,25 @@ body {
   min-height: 0;
   min-width: 0;
   width: 100%;
+  height: 100%;
   padding: 12px;
+  box-sizing: border-box;
 }
 
 .painel-combate-topo {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
-  padding: 12px 12px;
+  gap: 12px;
+  padding: 8px 12px 9px;
   margin: 0;
   border-bottom: 1px solid var(--border-default);
   flex-shrink: 0;
   background: var(--bg-painel);
+  box-sizing: border-box;
+  width: calc(100% - 24px);
+  margin-left: 12px;
+  margin-right: 12px;
 }
 
 .painel-combate-esquerda {
@@ -236,7 +268,7 @@ body {
   margin: 0;
   border: none;
   padding: 0;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: bold;
   color: var(--text-primary);
   white-space: nowrap;
@@ -244,24 +276,34 @@ body {
 
 .painel-combate-rodada {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
-  justify-content: center;
-  gap: 2px;
+  gap: 16px;
   flex: 1;
   padding: 0;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.rodada-bloco {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 .rodada-label {
-  font-size: 10px;
+  font-size: 12px;
   color: #999;
   text-transform: uppercase;
   letter-spacing: 1px;
   font-weight: bold;
+  line-height: 1;
 }
 
 .rodada-num {
-  font-size: 2.5rem;
+  font-size: 2rem;
   font-weight: bold;
   color: #5aabff;
   line-height: 1;
@@ -318,35 +360,66 @@ body {
    5. INICIATIVA
    ========================================================================== */
 .btn-limpar-combate {
-  padding: 8px 16px;
+  padding: 6px 10px;
   background: #8b1a1a;
   color: #fff;
   border: 1px solid #c0392b;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: bold;
   transition: background 0.2s;
   flex-shrink: 0;
   white-space: nowrap;
   margin-left: auto;
+  line-height: 1.2;
 }
 
 .btn-limpar-combate:hover {
   background: #c0392b;
 }
 
+.btn-encerrar-combate {
+  padding: 6px 10px;
+  background: none;
+  color: #ff6b6b;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: bold;
+  transition: background 0.2s, border-color 0.2s;
+  flex-shrink: 0;
+  white-space: nowrap;
+  margin-left: auto;
+  line-height: 1.2;
+}
+
+.btn-encerrar-combate:hover {
+  background: #2a0a0a;
+  border-color: #8b1a1a;
+}
+
 /* Item base */
 .item-iniciativa {
-  padding: 12px;
+  position: relative;
+  padding: 10px 10px 8px;
   border: 1px solid var(--border-light);
-  border-radius: 6px;
+  border-radius: 10px;
   margin-bottom: 0;
+  margin-top: 8px;
   background: var(--bg-card);
-  transition: border-color 0.2s, background 0.2s;
-  min-width: 180px;
-  max-width: 200px;
+  transition: border-color 0.2s, background 0.2s, box-shadow 0.2s;
+  min-width: 220px;
+  width: 220px;
+  max-width: 220px;
+  height: 148px;
+  min-height: 148px;
   flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-sizing: border-box;
 }
 
 .turno-ativo-card {
@@ -366,9 +439,9 @@ body.tema-light .turno-ativo-card {
 
 /* Turno ativo */
 .item-iniciativa--ativo {
-  border-color: #064D9F;
+  border-color: #2ecc71;
   background: var(--bg-card);
-  box-shadow: 0 0 0 1px #064D9F;
+  box-shadow: 0 0 0 1px #2ecc71, 0 0 12px rgba(46, 204, 113, 0.25);
 }
 
 /* Nocauteado */
@@ -406,15 +479,52 @@ body.tema-light .turno-ativo-card {
   margin-bottom: 8px;
 }
 
+.item-ini-topo {
+  display: flex;
+  align-items: center;
+  height: 0;
+}
+
+.item-ini-iniciativa {
+  position: absolute;
+  top: -10px;
+  left: -8px;
+  font-size: 12px;
+  font-weight: bold;
+  color: #dfe8ff;
+  background: #1b2733;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 7px;
+  padding: 3px 7px;
+  min-width: 20px;
+  text-align: center;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+
+.item-ini-atual-badge {
+  position: absolute;
+  top: -10px;
+  right: -8px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  color: #0a2e0a;
+  background: #2ecc71;
+  border-radius: 20px;
+  padding: 3px 10px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+}
+
 .item-iniciativa-nome {
   font-weight: bold;
   color: var(--text-primary);
   font-size: 0.95em;
   flex: 1;
+  line-height: 1.2;
 }
 
 .item-iniciativa--ativo .item-iniciativa-nome {
-  color: #5aabff;
+  color: #6bffb0;
 }
 
 .btn-remover-ini {
@@ -743,6 +853,88 @@ body.tema-light .previa-cura { color: #16a34a; }
   text-align: center;
 }
 
+.item-ini-corpo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+}
+
+.item-ini-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.04);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.item-ini-dados {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  justify-content: center;
+}
+
+.item-ini-info {
+  color: var(--text-secondary);
+  font-size: 11px;
+}
+
+.item-ini-vida-row {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-muted);
+  font-size: 11px;
+  margin-top: 2px;
+}
+
+.item-ini-vida-label {
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.item-ini-vida-valor {
+  color: var(--text-primary);
+  font-weight: bold;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
+.item-ini-condicoes {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 4px;
+  margin-top: auto;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.item-ini-cond-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--bg-tag-cond);
+  border: 1px solid var(--yellow);
+  border-radius: 4px;
+  padding: 2px 5px;
+  font-size: 9px;
+  color: var(--yellow);
+  line-height: 1.2;
+}
+
 .item-iniciativa-valor {
   color: #28a745;
   font-size: 0.75em;
@@ -764,6 +956,11 @@ body.tema-light .previa-cura { color: #16a34a; }
   border-radius: 3px;
   overflow: hidden;
   margin-bottom: 6px;
+}
+
+.barra-hp-wrap--mini {
+  margin-bottom: 0;
+  height: 6px;
 }
 
 .barra-hp-fill {
@@ -963,112 +1160,173 @@ body.tema-light .previa-cura { color: #16a34a; }
   text-align: center;
 }
 
-/* Card do combatente ativo */
+/* Card do combatente ativo
+   Reaproveita as classes .item-iniciativa / .item-iniciativa--ativo (JS) só para herdar
+   a lógica de cor de estado (ativo/morto/nocauteado) — o tamanho fixo do card de combate
+   (largura/altura) não deve ser aplicado aqui, então é resetado abaixo. */
 .turno-ativo-card {
   background: var(--bg-card);
-  border: 1px solid #064D9F;
+  border: 1px solid rgba(255,255,255,0.08);
   border-left: 4px solid #5aabff;
   border-radius: 8px;
-  padding: 12px;
-  margin-bottom: 12px;
-  animation: pulso-ativo 2s ease-in-out infinite;
+  padding: 10px 12px 12px;
+  margin: 0;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
+  flex-shrink: 0;
 }
 
-@keyframes pulso-ativo {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(90, 171, 255, 0); }
-  50%       { box-shadow: 0 0 8px 2px rgba(90, 171, 255, 0.2); }
+.turno-ativo-card.item-iniciativa {
+  position: static;
+  width: 100%;
+  min-width: 0;
+  max-width: none;
+  height: auto;
+  min-height: 0;
+  margin: 0;
 }
 
 .turno-ativo-cabecalho {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  margin-bottom: 12px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid var(--border-light);
+  gap: 6px;
+  margin-bottom: 8px;
+}
+
+.turno-ativo-topo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.turno-ativo-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(255,255,255,0.04);
+  color: var(--text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+.turno-ativo-info-col {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .turno-ativo-header {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   justify-content: space-between;
   gap: 8px;
 }
 
-.turno-ativo-info {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
 .turno-ativo-badge {
   font-size: 10px;
-  background: #064D9F;
-  color: #fff;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  background: rgba(90, 171, 255, 0.12);
+  color: #8ec2ff;
+  border: 1px solid rgba(90, 171, 255, 0.4);
   border-radius: 4px;
   padding: 2px 6px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  flex-shrink: 0;
+  width: fit-content;
 }
 
 .turno-ativo-nome {
   font-size: 15px;
-  font-weight: bold;
-  color: #5aabff;
-  margin-bottom: 6px;
+  font-weight: 700;
+  color: #e7edf7;
+  line-height: 1.2;
 }
 
 .turno-ativo-detalhes {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  font-size: 12px;
+  gap: 6px 10px;
+  font-size: 11px;
   color: var(--text-secondary);
-  margin-bottom: 2px;
+  justify-content: flex-end;
 }
 
-.turno-ativo-hp  { color: #ff6b6b; font-weight: bold; }
-.turno-ativo-ini { color: #28a745; font-weight: bold; }
+.turno-ativo-ini {
+  color: #8ae0a0;
+  font-weight: 700;
+}
+
+.turno-ativo-status {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 10px;
+}
+
+.turno-ativo-hp-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.turno-ativo-hp-label {
+  color: var(--text-muted);
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+
+.turno-ativo-hp-valor {
+  color: #9fe6a3;
+  font-weight: 700;
+}
+
+.turno-ativo-barra {
+  margin: 0;
+  height: 6px;
+}
 
 .turno-ativo-condicoes {
   width: 100%;
-  margin-top: 6px;
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
+  margin-top: 2px;
 }
 
-.turno-ativo-cond-tag {
+.turno-ativo-cond-texto {
   font-size: 11px;
-  background: var(--bg-tag-cond);
-  border: 1px solid var(--yellow);
-  border-radius: 4px;
-  padding: 1px 6px;
-  color: var(--yellow);
+  color: var(--text-secondary);
+  line-height: 1.4;
 }
 
 /* Botões de ação no painel de turno */
 .turno-ativo-acoes {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 6px;
-  margin-top: 0;
+  margin-top: 10px;
 }
 
 .btn-turno-acao {
   padding: 8px 10px;
   border: 1px solid var(--border-light);
-  border-radius: 4px;
+  border-radius: 6px;
   cursor: pointer;
   font-size: 12px;
-  font-weight: bold;
+  font-weight: 700;
   transition: all 0.15s;
   flex-shrink: 0;
   white-space: nowrap;
   background: var(--bg-card2);
   color: var(--text-primary);
+  min-height: 36px;
 }
 
 .btn-turno-acao--ataque {
@@ -1119,8 +1377,8 @@ body.tema-light .previa-cura { color: #16a34a; }
 .turno-controles {
   display: flex;
   gap: 8px;
-  margin-top: 10px;
-  margin-bottom: 12px;
+  margin: 0;
+  margin-top: auto;
 }
 
 .btn-turno--proximo {
@@ -1133,12 +1391,12 @@ body.tema-light .previa-cura { color: #16a34a; }
 
 .btn-turno {
   flex: 1;
-  padding: 10px;
+  padding: 6px 10px;
   background: var(--bg-card2);
   border: 1px solid var(--border-input);
   border-radius: 4px;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: bold;
   transition: background 0.2s;
 }
@@ -1157,19 +1415,75 @@ body.tema-light .previa-cura { color: #16a34a; }
 }
 
 .btn-config-turno {
-  padding: 10px 12px;
+  padding: 6px 10px;
   background: var(--bg-card2);
   color: var(--text-primary);
   border: 1px solid var(--border-input);
   border-radius: 4px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 13px;
   transition: background 0.2s;
   flex-shrink: 0;
 }
 
 .btn-config-turno:hover {
   background: var(--border-default);
+}
+
+/* Faixa "Ordem da Iniciativa" (barra horizontal ao lado da Rodada, no topo do painel de Combate) */
+.ordem-iniciativa-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.ordem-iniciativa-titulo {
+  margin: 0;
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-weight: bold;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.ordem-iniciativa-lista {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 2px 2px 4px;
+}
+
+.ordem-iniciativa-chip {
+  min-width: 30px;
+  padding: 4px 7px;
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: bold;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  flex-shrink: 0;
+}
+
+.ordem-iniciativa-chip:hover {
+  border-color: var(--text-muted);
+}
+
+.ordem-iniciativa-chip--ativa {
+  background: #2ecc71;
+  border-color: #2ecc71;
+  color: #0a2e0a;
 }
 
 .btn-remover-turno {
@@ -1417,8 +1731,8 @@ body.tema-light .previa-cura { color: #16a34a; }
   width: 55px;
   height: 55px;
   padding: 5px;
-  background: var(--bg-card2);
-  border: 1px solid var(--border-input);
+  background: rgba(6, 77, 159, 0.18);
+  border: 1px solid rgba(6, 77, 159, 0.55);
   border-radius: 8px;
   cursor: pointer;
   display: flex;
@@ -1443,19 +1757,132 @@ body.tema-light .previa-cura { color: #16a34a; }
   filter: grayscale(0%) drop-shadow(0 0 10px #064D9F);
 }
 
+.botoes-dados button.selecionado {
+  background: var(--accent);
+  border-color: var(--accent-hover);
+  box-shadow: 0 0 0 1px var(--accent-hover), 0 0 10px var(--accent-glow);
+}
+
+.btn-rolar-dado-grande {
+  width: 100%;
+  margin-top: 10px;
+  padding: 12px;
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-rolar-dado-grande:hover {
+  background: var(--accent-hover);
+}
+
 #resultado-dado {
-  margin-top: 5px;
+  margin-top: 8px;
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
 #resultado-dado .valor {
-  font-size: 32px;
+  font-size: 42px;
   font-weight: bold;
   margin-top: 5px;
   transition: transform 0.1s;
 }
+
+/* Últimas Rolagens */
+.ultimas-rolagens-wrap {
+  margin-top: 16px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-light);
+}
+
+.ultimas-rolagens-titulo {
+  margin: 0 0 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: bold;
+}
+
+.ultimas-rolagens-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ultima-rolagem-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: var(--bg-card);
+  border-left: 3px solid var(--accent);
+  border-radius: 4px;
+  padding: 6px 8px;
+  font-size: 12px;
+}
+
+.ultima-rolagem-formula {
+  color: var(--text-secondary);
+  flex: 1;
+}
+
+.ultima-rolagem-total {
+  color: var(--text-primary);
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.ultima-rolagem-hora {
+  color: var(--text-faint);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+/* Ações Rápidas */
+.acoes-rapidas-wrap {
+  margin-top: 16px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-light);
+}
+
+.acoes-rapidas-titulo {
+  margin: 0 0 8px;
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: bold;
+}
+
+.acoes-rapidas-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+}
+
+.btn-rapido {
+  padding: 10px 8px;
+  border: none;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: filter 0.15s;
+}
+
+.btn-rapido:hover {
+  filter: brightness(1.15);
+}
+
+.btn-rapido--roxo   { background: #6d3fa8; }
+.btn-rapido--azul   { background: #064D9F; }
+.btn-rapido--teal   { background: #0f7d6c; }
 
 /* ==========================================================================
    7. CONTROLES DE INPUT
@@ -1525,14 +1952,32 @@ body.tema-light .previa-cura { color: #16a34a; }
 }
 
 .log-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
   background: var(--bg-card);
   border-left: 3px solid var(--accent);
   border-radius: 4px;
-  padding: 6px;
+  padding: 6px 8px;
   font-size: 13px;
   font-weight: bold;
   color: var(--text-primary);
   margin-bottom: 6px;
+}
+
+.log-item-texto {
+  flex: 1;
+  min-width: 0;
+  white-space: pre-line;
+}
+
+.log-item-hora {
+  flex-shrink: 0;
+  font-size: 11px;
+  font-weight: normal;
+  color: var(--text-faint);
+  white-space: nowrap;
 }
 
 .log-item.falha {
@@ -1552,14 +1997,14 @@ body.tema-light .log-item.sucesso { color: #16a34a; }
    10. STATUS DO GRUPO
    ========================================================================== */
 .btn-novo-heroi-status {
-  padding: 8px 12px;
+  padding: 6px 10px;
   background: var(--accent);
   color: white;
   border: none;
   border-radius: 4px;
   cursor: pointer;
   font-weight: bold;
-  font-size: 13px;
+  font-size: 12px;
   flex-shrink: 0;
   transition: background 0.2s;
 }
@@ -2060,35 +2505,37 @@ body.tema-light .log-item.sucesso { color: #16a34a; }
 }
 
 .btn-abrir-monstros {
-  padding: 8px 14px;
-  background: #064D9F;
+  padding: 6px 10px;
+  background: #8b1a1a;
   color: white;
-  border: 1px solid #064D9F;
+  border: 1px solid #c0392b;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: bold;
   transition: background 0.2s;
   white-space: nowrap;
   flex-shrink: 0;
+  line-height: 1.2;
 }
 
 .btn-abrir-monstros:hover {
-  background: #0a65cc;
+  background: #c0392b;
 }
 
 .btn-area-cab {
-  padding: 8px 14px;
+  padding: 6px 10px;
   background: #5a1a1a;
   color: #ffaaaa;
   border: 1px solid #8b2a2a;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: bold;
   transition: background 0.2s;
   flex-shrink: 0;
   white-space: nowrap;
+  line-height: 1.2;
 }
 
 .btn-area-cab:hover {
@@ -2382,10 +2829,10 @@ body.tema-light .log-item.sucesso { color: #16a34a; }
 
 /* Nome da campanha no header */
 .header-campanha {
-  font-size: 0.85rem;
+  font-size: 1rem;
   color: var(--text-muted);
   font-weight: normal;
-  margin-left: 6px;
+  margin-left: 0;
 }
 
 .condicao-duracao-dica {

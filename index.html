@@ -402,10 +402,16 @@
           <button class="btn-area-cab" id="btn-abrir-area" title="Dano em área">💥 Área</button>
         </div>
         <div class="painel-combate-rodada">
-          <span class="rodada-label">RODADA</span>
-          <span id="combate-rodada-num" class="rodada-num">1</span>
+          <div class="rodada-bloco">
+            <span class="rodada-label">RODADA</span>
+            <span id="combate-rodada-num" class="rodada-num">1</span>
+          </div>
+          <div class="ordem-iniciativa-wrap">
+            <h3 class="ordem-iniciativa-titulo">Ordem da Iniciativa</h3>
+            <div id="ordem-iniciativa-lista" class="ordem-iniciativa-lista"></div>
+          </div>
         </div>
-        <button class="btn-limpar-combate" onclick="limparIniciativa()">Limpar Combate</button>
+        <button class="btn-encerrar-combate" onclick="limparIniciativa()">🏳️ Encerrar Combate</button>
       </div>
       <div id="lista-iniciativa-conteudo"></div>
     </section>
@@ -418,13 +424,13 @@
 
       <div class="tab-panel tab-panel--active" id="tab-dados">
         <div class="botoes-dados">
-          <button onclick="rolarDado(4)" title="Rolar d4"><img src="img/d4.png" alt="d4"></button>
-          <button onclick="rolarDado(6)" title="Rolar d6"><img src="img/d6.png" alt="d6"></button>
-          <button onclick="rolarDado(8)" title="Rolar d8"><img src="img/d8.png" alt="d8"></button>
-          <button onclick="rolarDado(10)" title="Rolar d10"><img src="img/d10.png" alt="d10"></button>
-          <button onclick="rolarDado(12)" title="Rolar d12"><img src="img/d12.png" alt="d12"></button>
-          <button onclick="rolarDado(20)" title="Rolar d20"><img src="img/d20.png" alt="d20"></button>
-          <button onclick="rolarDado(100)" title="Rolar d100"><img src="img/d100.png" alt="d100"></button>
+          <button onclick="selecionarDado(4)" data-dado="4" title="Selecionar d4"><img src="img/d4.png" alt="d4"></button>
+          <button onclick="selecionarDado(6)" data-dado="6" title="Selecionar d6"><img src="img/d6.png" alt="d6"></button>
+          <button onclick="selecionarDado(8)" data-dado="8" title="Selecionar d8"><img src="img/d8.png" alt="d8"></button>
+          <button onclick="selecionarDado(10)" data-dado="10" title="Selecionar d10"><img src="img/d10.png" alt="d10"></button>
+          <button onclick="selecionarDado(12)" data-dado="12" title="Selecionar d12"><img src="img/d12.png" alt="d12"></button>
+          <button onclick="selecionarDado(20)" data-dado="20" title="Selecionar d20"><img src="img/d20.png" alt="d20"></button>
+          <button onclick="selecionarDado(100)" data-dado="100" title="Selecionar d100"><img src="img/d100.png" alt="d100"></button>
           <div class="controle-modificador">
             <label for="quantidade">Qtd:</label>
             <input type="number" id="quantidade" value="1" min="1">
@@ -432,9 +438,22 @@
             <input type="number" id="modificador" value="0">
           </div>
         </div>
+        <button id="btn-rolar-dado" class="btn-rolar-dado-grande">ROLAR DADO</button>
         <div id="resultado-dado">
           <span class="label">Resultado:</span>
           <span class="valor">-</span>
+        </div>
+        <div class="ultimas-rolagens-wrap">
+          <h3 class="ultimas-rolagens-titulo">📜 Últimas Rolagens</h3>
+          <div id="lista-ultimas-rolagens" class="ultimas-rolagens-lista"></div>
+        </div>
+        <div class="acoes-rapidas-wrap">
+          <h3 class="acoes-rapidas-titulo">Ações Rápidas</h3>
+          <div class="acoes-rapidas-grid">
+            <button id="btn-rapido-iniciativa" class="btn-rapido btn-rapido--roxo">🎲 Rolar Iniciativa</button>
+            <button id="btn-rapido-pericia" class="btn-rapido btn-rapido--azul">🎯 Teste de Perícia</button>
+            <button id="btn-rapido-resistencia" class="btn-rapido btn-rapido--teal">🛡️ Teste de Resistência</button>
+          </div>
         </div>
       </div>
 
@@ -443,31 +462,12 @@
       </div>
     </section>
 
-    <section class="painel turno">
+<section class="painel turno">
       <h2>Controle de Turno</h2>
 
       <!-- Combatente ativo em destaque -->
       <div id="turno-ativo-card" class="turno-ativo-card oculto">
-        <div class="turno-ativo-cabecalho">
-          <div class="turno-ativo-header">
-            <div class="turno-ativo-info">
-              <div class="turno-ativo-nome" id="turno-ativo-nome">—</div>
-              <div class="turno-ativo-detalhes" id="turno-ativo-detalhes"></div>
-            </div>
-            <button id="btn-remover-turno-ativo" class="btn-remover-turno" style="display:none;">✕</button>
-          </div>
-          <div class="barra-hp-wrap" style="margin-top:6px;">
-            <div id="turno-ativo-barra" class="barra-hp-fill" style="width:100%;background:#2ecc71;"></div>
-          </div>
-        </div>
-
-        <!-- Botões de ação -->
-        <div class="turno-ativo-acoes">
-          <button id="btn-turno-ataque" class="btn-turno-acao btn-turno-acao--ataque">⚔️ Ataque</button>
-          <button id="btn-turno-condicao" class="btn-turno-acao btn-turno-acao--condicao">🔖 Condição</button>
-          <button id="btn-turno-cura" class="btn-turno-acao btn-turno-acao--cura">💚 Cura</button>
-          <button id="btn-turno-morto" class="btn-turno-acao btn-turno-acao--morto">☠️ Morto</button>
-        </div>
+        <!-- O conteúdo será injetado dinamicamente pelo script para espelhar o painel de combate -->
       </div>
       <div id="turno-vazio-msg" class="turno-dica">Adicione combatentes e avance o turno.</div>
 
@@ -475,14 +475,8 @@
       <div class="turno-controles">
         <button id="btn-turno-anterior" class="btn-turno btn-turno--anterior">◀ Voltar Turno</button>
         <button id="btn-proximo-turno"  class="btn-turno btn-turno--proximo">Finalizar Turno ▶</button>
-        <button id="btn-config-turno" class="btn-config-turno" title="Configurações">⚙️</button>
+        <button id="btn-turno-config" class="btn-config-turno" title="Configurações">⚙️</button>
       </div>
-
-      <!-- Condições ativas de todos os combatentes -->
-      <div class="turno-efeitos-header">
-        <span class="turno-efeitos-titulo">🔖 Condições Ativas</span>
-      </div>
-      <div id="turno-efeitos-lista" class="turno-efeitos-lista"></div>
 
     </section>
 
