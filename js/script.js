@@ -1150,13 +1150,17 @@ function atualizarPainelTurno() {
   // Estilização da borda e classes de estado
   cardEl.className = "turno-ativo-card item-iniciativa item-iniciativa--ativo"
     + (atual.morto ? " item-iniciativa--morto" : "")
-    + (atual.nocauteado && !atual.morto ? " item-iniciativa--nocauteado" : "");
+    + (atual.nocauteado && !atual.morto ? " item-iniciativa--nocauteado" : "")
+    + (!atual.idHeroi ? " item-iniciativa--monstro" : "");
 
   if (corHeroi) {
     cardEl.style.borderLeft = `4px solid ${corHeroi}`;
     cardEl.style.background = `${corHeroi}22`;
+  } else if (!atual.idHeroi) {
+    cardEl.style.borderLeft = "4px solid #e63946";
+    cardEl.style.background = "";
   } else {
-    cardEl.style.borderLeft = "4px solid #5aabff";
+    cardEl.style.borderLeft = "";
     cardEl.style.background = "";
   }
 
@@ -1193,6 +1197,7 @@ function atualizarPainelTurno() {
     + (atual.nocauteado && !atual.morto ? "😵 " : "")
     + atual.nome;
   if (corHeroi) nome.style.color = corHeroi;
+  else if (!atual.idHeroi) nome.style.color = "var(--red)";
 
   const dadosLado = document.createElement("div");
   dadosLado.className = "turno-ativo-detalhes";
@@ -1378,7 +1383,8 @@ function atualizarIniciativa() {
     item.className = "item-iniciativa"
       + (ativo                                        ? " item-iniciativa--ativo"      : "")
       + (personagem.morto                             ? " item-iniciativa--morto"      : "")
-      + (personagem.nocauteado && !personagem.morto   ? " item-iniciativa--nocauteado" : "");
+      + (personagem.nocauteado && !personagem.morto   ? " item-iniciativa--nocauteado" : "")
+      + (!personagem.idHeroi                          ? " item-iniciativa--monstro"    : "");
 
     // Cor do herói na borda esquerda (e fundo suave quando ativo)
     if (personagem.idHeroi) {
@@ -1787,7 +1793,7 @@ function rolarDado(lados) {
 
 function registrarUltimaRolagem(formula, total) {
   ultimasRolagens.unshift({ formula, total, hora: horaAgora() });
-  ultimasRolagens = ultimasRolagens.slice(0, 5);
+  ultimasRolagens = ultimasRolagens.slice(0, 4);
   localStorage.setItem("ultimasRolagensRPG", JSON.stringify(ultimasRolagens));
   renderizarUltimasRolagens();
 }
@@ -1807,7 +1813,7 @@ function renderizarUltimasRolagens() {
     item.className = "ultima-rolagem-item";
     item.innerHTML = `
       <span class="ultima-rolagem-formula">${r.formula}</span>
-      <span class="ultima-rolagem-total">${r.total}</span>
+      <span class="ultima-rolagem-total">Resultado: ${r.total}</span>
       <span class="ultima-rolagem-hora">${r.hora || ""}</span>
     `;
     lista.appendChild(item);
@@ -2061,7 +2067,6 @@ window.onload = () => {
 
   document.getElementById("btn-turno-anterior").addEventListener("click", turnoAnterior);
   document.getElementById("btn-proximo-turno").addEventListener("click", proximoTurno);
-  document.getElementById("btn-turno-config").addEventListener("click", abrirModalConfig);
 
   document.getElementById("btn-rolar-dado").addEventListener("click", rolarDadoSelecionado);
   selecionarDado(dadoSelecionado);

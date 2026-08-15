@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RPG Companion </title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -128,23 +131,37 @@
         <h2 id="modal-heroi-titulo">Novo Herói</h2>
         <input type="hidden" id="heroi-id-edicao" value="" />
         <div class="form-heroi">
-          <label for="heroi-nome">Nome</label>
-          <input type="text" id="heroi-nome" placeholder="Ex: Aragorn" />
+          <div class="campo-heroi">
+            <label for="heroi-nome">Nome</label>
+            <input type="text" id="heroi-nome" placeholder="Ex: Aragorn" />
+          </div>
 
-          <label for="heroi-classe">Classe</label>
-          <input type="text" id="heroi-classe" placeholder="Ex: Guerreiro, Mago..." />
+          <div class="campo-heroi">
+            <label for="heroi-classe">Classe</label>
+            <input type="text" id="heroi-classe" placeholder="Ex: Guerreiro, Mago..." />
+          </div>
 
-          <label for="heroi-nivel">Nível</label>
-          <input type="number" id="heroi-nivel" value="1" min="1" />
+          <div class="campo-heroi-linha">
+            <div class="campo-heroi">
+              <label for="heroi-nivel">Nível</label>
+              <input type="number" id="heroi-nivel" value="1" min="1" />
+            </div>
 
-          <label for="heroi-hp">HP Máximo</label>
-          <input type="number" id="heroi-hp" value="10" min="1" />
+            <div class="campo-heroi">
+              <label for="heroi-hp">HP Máximo</label>
+              <input type="number" id="heroi-hp" value="10" min="1" />
+            </div>
 
-          <label for="heroi-ca">Classe de Armadura (CA)</label>
-          <input type="number" id="heroi-ca" value="10" min="1" />
+            <div class="campo-heroi">
+              <label for="heroi-ca">Classe de Armadura (CA)</label>
+              <input type="number" id="heroi-ca" value="10" min="1" />
+            </div>
+          </div>
 
-          <label>Cor do Herói</label>
-          <div id="heroi-cores" class="heroi-cores"></div>
+          <div class="campo-heroi campo-heroi--cores">
+            <label>Cor do Herói</label>
+            <div id="heroi-cores" class="heroi-cores"></div>
+          </div>
 
           <button id="btn-confirmar-heroi" class="btn-confirmar">Criar Herói</button>
         </div>
@@ -402,13 +419,15 @@
           <button class="btn-area-cab" id="btn-abrir-area" title="Dano em área">💥 Área</button>
         </div>
         <div class="painel-combate-rodada">
-          <div class="rodada-bloco">
-            <span class="rodada-label">RODADA</span>
-            <span id="combate-rodada-num" class="rodada-num">1</span>
-          </div>
-          <div class="ordem-iniciativa-wrap">
-            <h3 class="ordem-iniciativa-titulo">Ordem da Iniciativa</h3>
-            <div id="ordem-iniciativa-lista" class="ordem-iniciativa-lista"></div>
+          <div class="rodada-iniciativa-caixa">
+            <div class="rodada-bloco">
+              <span class="rodada-label">RODADA</span>
+              <span id="combate-rodada-num" class="rodada-num">1</span>
+            </div>
+            <div class="ordem-iniciativa-wrap">
+              <h3 class="ordem-iniciativa-titulo">Ordem da Iniciativa</h3>
+              <div id="ordem-iniciativa-lista" class="ordem-iniciativa-lista"></div>
+            </div>
           </div>
         </div>
         <button class="btn-encerrar-combate" onclick="limparIniciativa()">🏳️ Encerrar Combate</button>
@@ -423,29 +442,31 @@
       </div>
 
       <div class="tab-panel tab-panel--active" id="tab-dados">
-        <div class="botoes-dados">
-          <button onclick="selecionarDado(4)" data-dado="4" title="Selecionar d4"><img src="img/d4.png" alt="d4"></button>
-          <button onclick="selecionarDado(6)" data-dado="6" title="Selecionar d6"><img src="img/d6.png" alt="d6"></button>
-          <button onclick="selecionarDado(8)" data-dado="8" title="Selecionar d8"><img src="img/d8.png" alt="d8"></button>
-          <button onclick="selecionarDado(10)" data-dado="10" title="Selecionar d10"><img src="img/d10.png" alt="d10"></button>
-          <button onclick="selecionarDado(12)" data-dado="12" title="Selecionar d12"><img src="img/d12.png" alt="d12"></button>
-          <button onclick="selecionarDado(20)" data-dado="20" title="Selecionar d20"><img src="img/d20.png" alt="d20"></button>
-          <button onclick="selecionarDado(100)" data-dado="100" title="Selecionar d100"><img src="img/d100.png" alt="d100"></button>
+        <div class="tab-dados-scroll">
+          <div class="botoes-dados">
+            <button onclick="selecionarDado(4)" data-dado="4" title="Selecionar d4"><img src="img/d4.png" alt="d4"></button>
+            <button onclick="selecionarDado(6)" data-dado="6" title="Selecionar d6"><img src="img/d6.png" alt="d6"></button>
+            <button onclick="selecionarDado(8)" data-dado="8" title="Selecionar d8"><img src="img/d8.png" alt="d8"></button>
+            <button onclick="selecionarDado(10)" data-dado="10" title="Selecionar d10"><img src="img/d10.png" alt="d10"></button>
+            <button onclick="selecionarDado(12)" data-dado="12" title="Selecionar d12"><img src="img/d12.png" alt="d12"></button>
+            <button onclick="selecionarDado(20)" data-dado="20" title="Selecionar d20"><img src="img/d20.png" alt="d20"></button>
+            <button onclick="selecionarDado(100)" data-dado="100" title="Selecionar d100"><img src="img/d100.png" alt="d100"></button>
+          </div>
           <div class="controle-modificador">
-            <label for="quantidade">Qtd:</label>
+            <label for="quantidade">Quantidade:</label>
             <input type="number" id="quantidade" value="1" min="1">
             <label for="modificador">Modificador:</label>
             <input type="number" id="modificador" value="0">
           </div>
-        </div>
-        <button id="btn-rolar-dado" class="btn-rolar-dado-grande">ROLAR DADO</button>
-        <div id="resultado-dado">
-          <span class="label">Resultado:</span>
-          <span class="valor">-</span>
-        </div>
-        <div class="ultimas-rolagens-wrap">
-          <h3 class="ultimas-rolagens-titulo">📜 Últimas Rolagens</h3>
-          <div id="lista-ultimas-rolagens" class="ultimas-rolagens-lista"></div>
+          <button id="btn-rolar-dado" class="btn-rolar-dado-grande">ROLAR DADO</button>
+          <div id="resultado-dado">
+            <span class="label">Resultado:</span>
+            <span class="valor">-</span>
+          </div>
+          <div class="ultimas-rolagens-wrap">
+            <h3 class="ultimas-rolagens-titulo">📜 Últimas Rolagens</h3>
+            <div id="lista-ultimas-rolagens" class="ultimas-rolagens-lista"></div>
+          </div>
         </div>
         <div class="acoes-rapidas-wrap">
           <h3 class="acoes-rapidas-titulo">Ações Rápidas</h3>
@@ -475,7 +496,6 @@
       <div class="turno-controles">
         <button id="btn-turno-anterior" class="btn-turno btn-turno--anterior">◀ Voltar Turno</button>
         <button id="btn-proximo-turno"  class="btn-turno btn-turno--proximo">Finalizar Turno ▶</button>
-        <button id="btn-turno-config" class="btn-config-turno" title="Configurações">⚙️</button>
       </div>
 
     </section>
@@ -490,7 +510,7 @@
 
     <section class="painel status">
       <div class="painel-cabecalho painel-cabecalho--status">
-        <h2>Vida e Status do Grupo</h2>
+        <h2>Grupo e Combatentes</h2>
         <button id="btn-novo-heroi-status" class="btn-novo-heroi-status">+ Criar Novo Herói</button>
       </div>
       <div id="conteudo-status-grupo"></div>

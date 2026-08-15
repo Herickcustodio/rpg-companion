@@ -67,7 +67,7 @@ body.tema-light {
    ========================================================================== */
 body {
   margin: 0;
-  font-family: Arial, sans-serif;
+  font-family: "Inter", "Segoe UI", Arial, sans-serif;
   background: var(--bg-body);
   color: var(--text-primary);
   overflow: hidden;
@@ -92,6 +92,7 @@ body {
 
 .cabecalho-topo h1 {
   margin: 0;
+  font-family: "Cinzel", Georgia, serif;
   font-size: 1.7rem;
   font-weight: 800;
   color: var(--accent-hover);
@@ -144,7 +145,7 @@ body {
    ========================================================================== */
 .dashboard {
   display: grid;
-  grid-template-columns: 460px 1fr 1fr;
+  grid-template-columns: 2fr 3fr 3fr;
   grid-template-rows: auto 1fr 1fr;
   gap: 5px;
   padding: 5px;
@@ -166,7 +167,9 @@ body {
 
 .painel h2 {
   margin: 0 0 8px 0;
+  font-family: "Cinzel", Georgia, serif;
   font-size: 16px;
+  line-height: 1.2;
   border-bottom: 1px solid var(--border-default);
   padding-bottom: 8px;
   flex-shrink: 0;
@@ -182,7 +185,7 @@ body {
 .painel-cabecalho {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-end;
   border-bottom: 1px solid var(--border-default);
   padding-bottom: 8px;
   margin-bottom: 8px;
@@ -193,15 +196,17 @@ body {
   margin: 0;
   border-bottom: none;
   padding-bottom: 0;
+  font-family: "Cinzel", Georgia, serif;
   font-size: 16px;
+  line-height: 1.2;
 }
 
 .painel-cabecalho--status {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
   justify-content: space-between;
   gap: 8px;
-  margin-bottom: 10px;
+  margin-bottom: 8px;
 }
 
 .painel:hover {
@@ -246,7 +251,7 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 8px 12px 9px;
+  padding: 8px 12px 8px;
   margin: 0;
   border-bottom: 1px solid var(--border-default);
   flex-shrink: 0;
@@ -268,6 +273,7 @@ body {
   margin: 0;
   border: none;
   padding: 0;
+  font-family: "Cinzel", Georgia, serif;
   font-size: 16px;
   font-weight: bold;
   color: var(--text-primary);
@@ -278,11 +284,23 @@ body {
   display: flex;
   flex-direction: row;
   align-items: center;
+  justify-content: center;
   gap: 16px;
   flex: 1;
   padding: 0;
   min-width: 0;
   overflow: hidden;
+}
+
+.rodada-iniciativa-caixa {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+  padding: 1px 10px;
+  border: 1px solid var(--border-default);
+  border-radius: 8px;
+  background: #1e1e1e;
 }
 
 .rodada-bloco {
@@ -303,7 +321,7 @@ body {
 }
 
 .rodada-num {
-  font-size: 2rem;
+  font-size: 1.65rem;
   font-weight: bold;
   color: #5aabff;
   line-height: 1;
@@ -360,13 +378,13 @@ body {
    5. INICIATIVA
    ========================================================================== */
 .btn-limpar-combate {
-  padding: 6px 10px;
+  padding: 2px 9px;
   background: #8b1a1a;
   color: #fff;
   border: 1px solid #c0392b;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: bold;
   transition: background 0.2s;
   flex-shrink: 0;
@@ -380,13 +398,13 @@ body {
 }
 
 .btn-encerrar-combate {
-  padding: 6px 10px;
+  padding: 5px 9px;
   background: none;
   color: #ff6b6b;
   border: 1px solid transparent;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: bold;
   transition: background 0.2s, border-color 0.2s;
   flex-shrink: 0;
@@ -516,6 +534,7 @@ body.tema-light .turno-ativo-card {
 }
 
 .item-iniciativa-nome {
+  font-family: "Cinzel", Georgia, serif;
   font-weight: bold;
   color: var(--text-primary);
   font-size: 0.95em;
@@ -525,6 +544,14 @@ body.tema-light .turno-ativo-card {
 
 .item-iniciativa--ativo .item-iniciativa-nome {
   color: #6bffb0;
+}
+
+.item-iniciativa--monstro .item-iniciativa-nome {
+  color: var(--red);
+}
+
+.item-iniciativa--ativo.item-iniciativa--monstro .item-iniciativa-nome {
+  color: var(--red);
 }
 
 .btn-remover-ini {
@@ -1169,7 +1196,7 @@ body.tema-light .previa-cura { color: #16a34a; }
   border: 1px solid rgba(255,255,255,0.08);
   border-left: 4px solid #5aabff;
   border-radius: 8px;
-  padding: 10px 12px 12px;
+  padding: 8px 10px;
   margin: 0;
   box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
   flex-shrink: 0;
@@ -1188,8 +1215,8 @@ body.tema-light .previa-cura { color: #16a34a; }
 .turno-ativo-cabecalho {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-bottom: 8px;
+  gap: 4px;
+  margin-bottom: 6px;
 }
 
 .turno-ativo-topo {
@@ -1199,8 +1226,8 @@ body.tema-light .previa-cura { color: #16a34a; }
 }
 
 .turno-ativo-avatar {
-  width: 48px;
-  height: 48px;
+  width: 38px;
+  height: 38px;
   border-radius: 8px;
   border: 1px solid rgba(255,255,255,0.14);
   background: rgba(255,255,255,0.04);
@@ -1208,7 +1235,7 @@ body.tema-light .previa-cura { color: #16a34a; }
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 18px;
+  font-size: 15px;
   font-weight: bold;
   flex-shrink: 0;
 }
@@ -1241,6 +1268,7 @@ body.tema-light .previa-cura { color: #16a34a; }
 }
 
 .turno-ativo-nome {
+  font-family: "Cinzel", Georgia, serif;
   font-size: 15px;
   font-weight: 700;
   color: #e7edf7;
@@ -1264,8 +1292,8 @@ body.tema-light .previa-cura { color: #16a34a; }
 .turno-ativo-status {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  margin-bottom: 10px;
+  gap: 3px;
+  margin-bottom: 6px;
 }
 
 .turno-ativo-hp-row {
@@ -1310,23 +1338,23 @@ body.tema-light .previa-cura { color: #16a34a; }
 .turno-ativo-acoes {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 6px;
-  margin-top: 10px;
+  gap: 5px;
+  margin-top: 6px;
 }
 
 .btn-turno-acao {
-  padding: 8px 10px;
+  padding: 6px 8px;
   border: 1px solid var(--border-light);
   border-radius: 6px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: 700;
   transition: all 0.15s;
   flex-shrink: 0;
   white-space: nowrap;
   background: var(--bg-card2);
   color: var(--text-primary);
-  min-height: 36px;
+  min-height: 28px;
 }
 
 .btn-turno-acao--ataque {
@@ -1414,28 +1442,12 @@ body.tema-light .previa-cura { color: #16a34a; }
   background: #0a65cc;
 }
 
-.btn-config-turno {
-  padding: 6px 10px;
-  background: var(--bg-card2);
-  color: var(--text-primary);
-  border: 1px solid var(--border-input);
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 13px;
-  transition: background 0.2s;
-  flex-shrink: 0;
-}
-
-.btn-config-turno:hover {
-  background: var(--border-default);
-}
-
 /* Faixa "Ordem da Iniciativa" (barra horizontal ao lado da Rodada, no topo do painel de Combate) */
 .ordem-iniciativa-wrap {
   display: flex;
   align-items: center;
   gap: 8px;
-  flex: 1;
+  flex: 0 1 auto;
   min-width: 0;
 }
 
@@ -1697,6 +1709,7 @@ body.tema-light .previa-cura { color: #16a34a; }
   border-radius: 8px;
   background: transparent;
   color: var(--text-secondary);
+  font-family: "Cinzel", Georgia, serif;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
@@ -1717,6 +1730,19 @@ body.tema-light .previa-cura { color: #16a34a; }
 
 .tab-panel--active {
   display: block;
+}
+
+#tab-dados.tab-panel--active,
+#tab-anotacoes.tab-panel--active {
+  display: flex;
+  flex-direction: column;
+  overflow-y: hidden;
+}
+
+.tab-dados-scroll {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;
 }
 
 .botoes-dados {
@@ -1766,12 +1792,12 @@ body.tema-light .previa-cura { color: #16a34a; }
 .btn-rolar-dado-grande {
   width: 100%;
   margin-top: 10px;
-  padding: 12px;
+  padding: 8px;
   background: var(--accent);
   color: #fff;
   border: none;
   border-radius: 6px;
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 800;
   letter-spacing: 0.5px;
   cursor: pointer;
@@ -1817,9 +1843,9 @@ body.tema-light .previa-cura { color: #16a34a; }
 }
 
 .ultima-rolagem-item {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: space-between;
   gap: 8px;
   background: var(--bg-card);
   border-left: 3px solid var(--accent);
@@ -1830,18 +1856,21 @@ body.tema-light .previa-cura { color: #16a34a; }
 
 .ultima-rolagem-formula {
   color: var(--text-secondary);
-  flex: 1;
+  justify-self: start;
 }
 
 .ultima-rolagem-total {
   color: var(--text-primary);
   font-weight: bold;
   font-size: 14px;
+  justify-self: center;
+  white-space: nowrap;
 }
 
 .ultima-rolagem-hora {
   color: var(--text-faint);
   font-size: 11px;
+  justify-self: end;
   white-space: nowrap;
 }
 
@@ -1850,6 +1879,7 @@ body.tema-light .previa-cura { color: #16a34a; }
   margin-top: 16px;
   padding-top: 10px;
   border-top: 1px solid var(--border-light);
+  flex-shrink: 0;
 }
 
 .acoes-rapidas-titulo {
@@ -1997,15 +2027,16 @@ body.tema-light .log-item.sucesso { color: #16a34a; }
    10. STATUS DO GRUPO
    ========================================================================== */
 .btn-novo-heroi-status {
-  padding: 6px 10px;
+  padding: 2px 9px;
   background: var(--accent);
   color: white;
-  border: none;
+  border: 1px solid transparent;
   border-radius: 4px;
   cursor: pointer;
   font-weight: bold;
-  font-size: 12px;
+  font-size: 11px;
   flex-shrink: 0;
+  line-height: 1.2;
   transition: background 0.2s;
 }
 
@@ -2039,6 +2070,7 @@ body.tema-light .log-item.sucesso { color: #16a34a; }
 }
 
 .card-heroi-nome {
+  font-family: "Cinzel", Georgia, serif;
   color: var(--text-primary);
   font-size: 1.1em;
   font-weight: bold;
@@ -2275,6 +2307,7 @@ body.tema-light .log-item.sucesso { color: #16a34a; }
 }
 
 .item-monstro-nome {
+  font-family: "Cinzel", Georgia, serif;
   color: var(--text-primary);
   font-size: 13px;
   font-weight: bold;
@@ -2420,10 +2453,32 @@ body.tema-light .log-item.sucesso { color: #16a34a; }
   color: var(--text-primary);
 }
 
+#modal-heroi .form-heroi {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.campo-heroi {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.campo-heroi-linha {
+  display: flex;
+  gap: 10px;
+}
+
+.campo-heroi--cores {
+  align-items: center;
+}
+
 .form-heroi label {
   font-size: 13px;
   color: var(--text-muted);
-  margin-bottom: 2px;
 }
 
 .form-heroi input {
@@ -2433,6 +2488,8 @@ body.tema-light .log-item.sucesso { color: #16a34a; }
   border: 1px solid var(--border-input);
   border-radius: 4px;
   font-size: 14px;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .form-heroi input:focus {
@@ -2505,13 +2562,13 @@ body.tema-light .log-item.sucesso { color: #16a34a; }
 }
 
 .btn-abrir-monstros {
-  padding: 6px 10px;
+  padding: 5px 9px;
   background: #8b1a1a;
   color: white;
   border: 1px solid #c0392b;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: bold;
   transition: background 0.2s;
   white-space: nowrap;
@@ -2524,13 +2581,13 @@ body.tema-light .log-item.sucesso { color: #16a34a; }
 }
 
 .btn-area-cab {
-  padding: 6px 10px;
+  padding: 5px 9px;
   background: #5a1a1a;
   color: #ffaaaa;
   border: 1px solid #8b2a2a;
   border-radius: 4px;
   cursor: pointer;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: bold;
   transition: background 0.2s;
   flex-shrink: 0;
@@ -2610,6 +2667,7 @@ body.tema-light .log-item.sucesso { color: #16a34a; }
 }
 
 .area-alvo-nome {
+  font-family: "Cinzel", Georgia, serif;
   font-size: 13px;
   color: var(--text-primary);
   font-weight: bold;
@@ -2632,8 +2690,8 @@ body.tema-light .log-item.sucesso { color: #16a34a; }
 .heroi-cores {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 8px;
-  margin-top: 4px;
 }
 
 .cor-heroi-btn {
