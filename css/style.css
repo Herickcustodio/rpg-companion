@@ -28,6 +28,9 @@
   --green:          #28a745;
   --red:            #e63946;
   --yellow:         #f39c12;
+
+  /* Fonte do nome da campanha no cabeçalho*/
+  --font-campanha:  "Berkshire Swash", cursive;
 }
 
 body.tema-light {
@@ -78,16 +81,25 @@ body {
    2. CABEÇALHO (HEADER)
    ========================================================================== */
 .cabecalho-topo {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
   align-items: center;
+  gap: 16px;
   background-color: var(--bg-header);
   color: var(--accent);
   padding: 8px 20px;
   border-bottom: 2px solid var(--accent);
   width: 100%;
+  height: 55px;
   box-sizing: border-box;
+  overflow: hidden;
   transition: background 0.3s;
+}
+
+.logo {
+  min-width: 0;
+  overflow: hidden;
+  flex-shrink: 0;
 }
 
 .cabecalho-topo h1 {
@@ -96,13 +108,45 @@ body {
   font-size: 1.7rem;
   font-weight: 800;
   color: var(--accent-hover);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.header-campanha-wrap {
+  min-width: 0;
+  overflow: hidden;
+  text-align: center;
+}
+
+.cabecalho-direita {
+  justify-self: end;
   display: flex;
-  align-items: baseline;
-  gap: 8px;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 14px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.header-mestre {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+  flex-shrink: 1;
+}
+
+@media (max-width: 900px) {
+  .header-mestre { display: none; }
 }
 
 .menu-controles {
   display: flex;
+  flex-wrap: nowrap;
+  flex-shrink: 0;
   gap: 10px;
 }
 
@@ -114,6 +158,8 @@ body {
   cursor: pointer;
   border-radius: 8px;
   font-weight: bold;
+  white-space: nowrap;
+  flex-shrink: 0;
   transition: background 0.2s, border-color 0.2s;
 }
 
@@ -539,7 +585,11 @@ body.tema-light .turno-ativo-card {
   color: var(--text-primary);
   font-size: 0.95em;
   flex: 1;
+  min-width: 0;
   line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .item-iniciativa--ativo .item-iniciativa-nome {
@@ -716,6 +766,9 @@ body.tema-light .turno-ativo-card {
 
 body.tema-light .modal-dano-previa--dano { background: #fee2e2; border-color: #fca5a5; }
 body.tema-light .modal-dano-previa--cura { background: #dcfce7; border-color: #86efac; }
+
+.modal-dano-previa--evento { background: var(--bg-card2); border: 1px solid var(--border-input); }
+.previa-evento-resultado { font-size: 18px; color: var(--accent); min-width: 30px; text-align: center; }
 
 .previa-ataque { color: var(--text-primary); flex: 1; }
 
@@ -1273,6 +1326,11 @@ body.tema-light .previa-cura { color: #16a34a; }
   font-weight: 700;
   color: #e7edf7;
   line-height: 1.2;
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .turno-ativo-detalhes {
@@ -1824,13 +1882,14 @@ body.tema-light .previa-cura { color: #16a34a; }
 
 /* Últimas Rolagens */
 .ultimas-rolagens-wrap {
-  margin-top: 16px;
-  padding-top: 10px;
+  margin-top: 10px;
+  padding-top: 8px;
   border-top: 1px solid var(--border-light);
+  flex-shrink: 0;
 }
 
 .ultimas-rolagens-titulo {
-  margin: 0 0 8px;
+  margin: 0 0 6px;
   font-size: 12px;
   color: var(--text-muted);
   font-weight: bold;
@@ -1839,7 +1898,7 @@ body.tema-light .previa-cura { color: #16a34a; }
 .ultimas-rolagens-lista {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 3px;
 }
 
 .ultima-rolagem-item {
@@ -1850,7 +1909,7 @@ body.tema-light .previa-cura { color: #16a34a; }
   background: var(--bg-card);
   border-left: 3px solid var(--accent);
   border-radius: 4px;
-  padding: 6px 8px;
+  padding: 4px 8px;
   font-size: 12px;
 }
 
@@ -1876,14 +1935,14 @@ body.tema-light .previa-cura { color: #16a34a; }
 
 /* Ações Rápidas */
 .acoes-rapidas-wrap {
-  margin-top: 16px;
-  padding-top: 10px;
+  margin-top: 10px;
+  padding-top: 8px;
   border-top: 1px solid var(--border-light);
   flex-shrink: 0;
 }
 
 .acoes-rapidas-titulo {
-  margin: 0 0 8px;
+  margin: 0 0 6px;
   font-size: 12px;
   color: var(--text-muted);
   font-weight: bold;
@@ -1891,12 +1950,12 @@ body.tema-light .previa-cura { color: #16a34a; }
 
 .acoes-rapidas-grid {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  gap: 8px;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
 }
 
 .btn-rapido {
-  padding: 10px 8px;
+  padding: 8px 8px;
   border: none;
   border-radius: 6px;
   color: #fff;
@@ -1910,9 +1969,10 @@ body.tema-light .previa-cura { color: #16a34a; }
   filter: brightness(1.15);
 }
 
-.btn-rapido--roxo   { background: #6d3fa8; }
-.btn-rapido--azul   { background: #064D9F; }
-.btn-rapido--teal   { background: #0f7d6c; }
+.btn-rapido--roxo    { background: #6d3fa8; }
+.btn-rapido--azul    { background: #064D9F; }
+.btn-rapido--teal    { background: #0f7d6c; }
+.btn-rapido--laranja { background: #b8590a; }
 
 /* ==========================================================================
    7. CONTROLES DE INPUT
@@ -2497,6 +2557,24 @@ body.tema-light .log-item.sucesso { color: #16a34a; }
   border-color: var(--accent);
 }
 
+.evento-acao-textarea {
+  padding: 8px 10px;
+  background: var(--bg-card2);
+  color: var(--text-primary);
+  border: 1px solid var(--border-input);
+  border-radius: 4px;
+  font-size: 14px;
+  width: 100%;
+  box-sizing: border-box;
+  font-family: inherit;
+  resize: vertical;
+}
+
+.evento-acao-textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
 .btn-confirmar {
   margin-top: 8px;
   padding: 10px;
@@ -2887,10 +2965,20 @@ body.tema-light .log-item.sucesso { color: #16a34a; }
 
 /* Nome da campanha no header */
 .header-campanha {
-  font-size: 1rem;
-  color: var(--text-muted);
-  font-weight: normal;
-  margin-left: 0;
+  display: block;
+  font-family: var(--font-campanha);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #d69f08;
+  /* -webkit-text-stroke: 0.3px #000; */
+  text-shadow:
+    -0.5px -0.5px 0 #000,
+     0.5px -0.5px 0 #000,
+    -0.5px  0.5px 0 #000,
+     0.5px  0.5px 0 #000;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .condicao-duracao-dica {

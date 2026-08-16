@@ -1763,6 +1763,78 @@ function rolarAcaoRapida(nomeAcao, emoji) {
   else adicionarHistorico(`${emoji} ${nomeAcao}: ${textoBase}`);
 }
 
+function abrirModalEvento() {
+  const sel = document.getElementById("evento-personagem");
+  sel.innerHTML = "";
+
+  const nomes = new Set();
+  partyHerois.forEach(h => nomes.add(h.nome));
+  listaDeIniciativa.forEach(c => nomes.add(c.nome));
+
+  if (nomes.size === 0) {
+    const opt = document.createElement("option");
+    opt.value = "";
+    opt.textContent = "Nenhum personagem disponível";
+    sel.appendChild(opt);
+  } else {
+    [...nomes].sort((a, b) => a.localeCompare(b, "pt-BR")).forEach(nome => {
+      const opt = document.createElement("option");
+      opt.value = nome;
+      opt.textContent = nome;
+      sel.appendChild(opt);
+    });
+  }
+
+  document.getElementById("evento-acao").value = "";
+  document.getElementById("evento-qtd").value = "1";
+  document.getElementById("evento-tipo").value = "20";
+  document.getElementById("evento-modificador").value = "0";
+
+  atualizarPreviaEvento();
+  document.getElementById("modal-evento").classList.remove("oculto");
+  document.getElementById("evento-acao").focus();
+}
+
+function fecharModalEvento() {
+  document.getElementById("modal-evento").classList.add("oculto");
+}
+
+function atualizarPreviaEvento(resultado = null) {
+  const personagem = document.getElementById("evento-personagem").value || "Alguém";
+  const acao       = document.getElementById("evento-acao").value.trim();
+  const previa     = document.getElementById("evento-previa");
+
+  let html = `<span class="previa-ataque">${personagem}${acao ? " " + acao : ""}</span>`;
+  if (resultado !== null) html += `<span class="previa-evento-resultado">${resultado}</span>`;
+  previa.innerHTML = html;
+}
+
+function rolarEvento() {
+  const qtd   = parseInt(document.getElementById("evento-qtd").value)         || 1;
+  const lados = parseInt(document.getElementById("evento-tipo").value)        || 20;
+  const mod   = parseInt(document.getElementById("evento-modificador").value) || 0;
+
+  let soma = 0;
+  const rolagens = [];
+  for (let i = 0; i < qtd; i++) {
+    const r = Math.floor(Math.random() * lados) + 1;
+    soma += r; rolagens.push(r);
+  }
+  const total = soma + mod;
+
+  atualizarPreviaEvento(total);
+
+  const personagem = document.getElementById("evento-personagem").value || "Alguém";
+  const acao       = document.getElementById("evento-acao").value.trim();
+  const sinal      = mod >= 0 ? "+" : "";
+  const formula    = `(${qtd}d${lados}: [${rolagens.join(", ")}] ${sinal}${mod})`;
+
+  const formulaCurta = `${qtd}d${lados}${mod ? (mod > 0 ? " + " + mod : " - " + Math.abs(mod)) : ""}`;
+  registrarUltimaRolagem(formulaCurta, total);
+
+  adicionarHistorico(`📜 ${personagem}${acao ? " " + acao : ""} e rolou ${total} ${formula}`);
+}
+
 function rolarDado(lados) {
   const modificador = parseInt(document.getElementById("modificador").value) || 0;
   const quantidade  = parseInt(document.getElementById("quantidade").value)  || 1;
@@ -1793,7 +1865,7 @@ function rolarDado(lados) {
 
 function registrarUltimaRolagem(formula, total) {
   ultimasRolagens.unshift({ formula, total, hora: horaAgora() });
-  ultimasRolagens = ultimasRolagens.slice(0, 4);
+  ultimasRolagens = ultimasRolagens.slice(0, 3);
   localStorage.setItem("ultimasRolagensRPG", JSON.stringify(ultimasRolagens));
   renderizarUltimasRolagens();
 }
@@ -1906,8 +1978,10 @@ function salvarConfig() {
 }
 
 function aplicarConfig() {
-  const span = document.getElementById("header-campanha");
-  if (span) span.textContent = config.campanhaNome ? `— ${config.campanhaNome}` : "";
+  const spanCampanha = document.getElementById("header-campanha");
+  if (spanCampanha) spanCampanha.textContent = config.campanhaNome || "";
+  const spanMestre = document.getElementById("header-mestre");
+  if (spanMestre) spanMestre.textContent = config.mestreNome ? `Mestre: ${config.mestreNome}` : "";
   const selAcerto = document.getElementById("acerto-tipo");
   if (selAcerto) selAcerto.value = config.dadoAcerto;
 }
@@ -2075,6 +2149,13 @@ window.onload = () => {
   document.getElementById("btn-rapido-iniciativa").addEventListener("click", () => rolarAcaoRapida("Iniciativa", "🎲"));
   document.getElementById("btn-rapido-pericia").addEventListener("click", () => rolarAcaoRapida("Teste de Perícia", "🎯"));
   document.getElementById("btn-rapido-resistencia").addEventListener("click", () => rolarAcaoRapida("Teste de Resistência", "🛡️"));
+
+  document.getElementById("btn-rapido-evento").addEventListener("click", abrirModalEvento);
+  document.getElementById("fechar-evento").addEventListener("click", fecharModalEvento);
+  document.getElementById("btn-rolar-evento").addEventListener("click", rolarEvento);
+  document.getElementById("evento-personagem").addEventListener("change", () => atualizarPreviaEvento());
+  document.getElementById("evento-acao").addEventListener("input", () => atualizarPreviaEvento());
+  window.addEventListener("click", (e) => { if (e.target === document.getElementById("modal-evento")) fecharModalEvento(); });
 
   // Botões de ação do painel de turno
   const btnTurnoAtaque = document.getElementById("btn-turno-ataque");

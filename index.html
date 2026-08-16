@@ -6,7 +6,7 @@
     <title>RPG Companion </title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Inter:wght@400;500;600;700&family=MedievalSharp&family=Pirata+One&family=Metamorphous&family=IM+Fell+English+SC&family=Grenze+Gotisch:wght@400;700&family=Uncial+Antiqua&family=UnifrakturMaguntia&family=Cinzel+Decorative:wght@400;700;900&family=Almendra+SC&family=Fondamento&family=Berkshire+Swash&family=Creepster&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
@@ -16,16 +16,22 @@
       <h1>
         <!-- <img src="img/icone.png" alt="Logo do RPG Companion" class="logo-img"> VOU CRIAR IMAGEM AINDA DE LOGO-->
         Master Shield RPG
-        <span id="header-campanha" class="header-campanha"></span>
       </h1>
     </div>
 
-    <nav class="menu-controles">
-      <button id="btn-sobre" class="btn-topo">Sobre</button>
-      <button id="btn-ajuda" class="btn-topo">Ajuda</button>
-      <button id="btn-config" class="btn-topo">Configurações</button>
-      <button id="btn-tema" class="btn-topo">🌓 Modo Dark/Light</button>
-    </nav>
+    <div class="header-campanha-wrap">
+      <span id="header-campanha" class="header-campanha"></span>
+    </div>
+
+    <div class="cabecalho-direita">
+      <span id="header-mestre" class="header-mestre"></span>
+      <nav class="menu-controles">
+        <button id="btn-sobre" class="btn-topo">Sobre</button>
+        <button id="btn-ajuda" class="btn-topo">Ajuda</button>
+        <button id="btn-config" class="btn-topo">Configurações</button>
+        <button id="btn-tema" class="btn-topo">🌓 Modo Dark/Light</button>
+      </nav>
+    </div>
 
     <!-- Modal Sobre -->
     <div id="modal-sobre" class="modal oculto">
@@ -267,6 +273,51 @@
       </div>
     </div>
 
+    <!-- Modal Evento -->
+    <div id="modal-evento" class="modal oculto">
+      <div class="modal-conteudo modal-conteudo--pequeno">
+        <span class="fechar-modal" id="fechar-evento">&times;</span>
+        <h2>📜 Evento</h2>
+
+        <div class="form-heroi">
+          <label for="evento-personagem">Personagem</label>
+          <select id="evento-personagem" class="modal-dano-select"></select>
+
+          <label for="evento-acao">Ação</label>
+          <textarea id="evento-acao" class="evento-acao-textarea" rows="3" placeholder="...vai tentar abrir a porta"></textarea>
+
+          <label>Dado</label>
+          <div class="modal-dano-seletor">
+            <div class="modal-dano-seletor-grupo">
+              <label>Qtd</label>
+              <input type="number" id="evento-qtd" value="1" min="1" max="20" />
+            </div>
+            <span class="modal-dano-seletor-sep">d</span>
+            <div class="modal-dano-seletor-grupo">
+              <label>Dado</label>
+              <select id="evento-tipo">
+                <option value="4">4</option>
+                <option value="6">6</option>
+                <option value="8">8</option>
+                <option value="10">10</option>
+                <option value="12">12</option>
+                <option value="20" selected>20</option>
+                <option value="100">100</option>
+              </select>
+            </div>
+            <div class="modal-dano-seletor-grupo">
+              <label>Mod</label>
+              <input type="number" id="evento-modificador" value="0" />
+            </div>
+          </div>
+
+          <div id="evento-previa" class="modal-dano-previa modal-dano-previa--evento"></div>
+
+          <button id="btn-rolar-evento" class="btn-confirmar">🎲 Rolar Evento</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Modal Dano / Cura -->
     <div id="modal-dano-cura" class="modal oculto">
       <div class="modal-conteudo">
@@ -463,10 +514,10 @@
             <span class="label">Resultado:</span>
             <span class="valor">-</span>
           </div>
-          <div class="ultimas-rolagens-wrap">
-            <h3 class="ultimas-rolagens-titulo">📜 Últimas Rolagens</h3>
-            <div id="lista-ultimas-rolagens" class="ultimas-rolagens-lista"></div>
-          </div>
+        </div>
+        <div class="ultimas-rolagens-wrap">
+          <h3 class="ultimas-rolagens-titulo">📜 Últimas Rolagens</h3>
+          <div id="lista-ultimas-rolagens" class="ultimas-rolagens-lista"></div>
         </div>
         <div class="acoes-rapidas-wrap">
           <h3 class="acoes-rapidas-titulo">Ações Rápidas</h3>
@@ -474,6 +525,7 @@
             <button id="btn-rapido-iniciativa" class="btn-rapido btn-rapido--roxo">🎲 Rolar Iniciativa</button>
             <button id="btn-rapido-pericia" class="btn-rapido btn-rapido--azul">🎯 Teste de Perícia</button>
             <button id="btn-rapido-resistencia" class="btn-rapido btn-rapido--teal">🛡️ Teste de Resistência</button>
+            <button id="btn-rapido-evento" class="btn-rapido btn-rapido--laranja">📜 Evento</button>
           </div>
         </div>
       </div>
