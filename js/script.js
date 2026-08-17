@@ -57,6 +57,110 @@ const CORES_HEROI = [
 
 let _corSelecionada = null;
 
+// Ícones disponíveis em img/herois/ (arquivo real é <id>_white.png / <id>_black.png)
+const IMAGENS_HEROI = [
+  { id: "barbarian",         label: "Bárbaro"        },
+  { id: "dwarf-face",        label: "Anão"           },
+  { id: "dwarf-helmet",      label: "Anão Guerreiro" },
+  { id: "dwarf-king",        label: "Rei Anão"       },
+  { id: "elf-helmet",        label: "Elfo Guerreiro" },
+  { id: "woman-elf-face",    label: "Elfa"           },
+  { id: "kenku-head",        label: "Kenku"          },
+  { id: "orc-head",          label: "Orc"            },
+  { id: "troll",             label: "Troll"          },
+  { id: "ogre",              label: "Ogro"           },
+  { id: "vampire-dracula",   label: "Vampiro"        },
+  { id: "warlock-hood",      label: "Bruxo"          },
+  { id: "wizard-face",       label: "Mago"           },
+  { id: "witch-face",        label: "Bruxa"          },
+  { id: "monk-face",         label: "Monge"          },
+  { id: "nun-face",          label: "Clériga"        },
+  { id: "cultist",           label: "Cultista"       },
+  { id: "cowled",            label: "Encapuzado"     },
+  { id: "executioner-hood",  label: "Carrasco"       },
+  { id: "barbute",           label: "Elmo Barbuto"   },
+  { id: "brutal-helm",       label: "Elmo Brutal"    },
+  { id: "visored-helm",      label: "Elmo com Viseira" },
+];
+
+let _imagemSelecionada = null;
+
+/** Preenche o quadradinho de pré-visualização no modal de Novo/Editar Herói */
+function atualizarPreviewImagemHeroi() {
+  const preview = document.getElementById("heroi-imagem-preview");
+  if (!preview) return;
+  if (_imagemSelecionada) {
+    preview.innerHTML = `<img src="img/herois/${_imagemSelecionada}_white.png" alt="">`;
+  } else {
+    preview.innerHTML = "";
+    preview.textContent = "✕";
+  }
+}
+
+function abrirModalEscolherImagem() {
+  renderizarSeletorImagens();
+  document.getElementById("modal-escolher-imagem").classList.remove("oculto");
+}
+
+function fecharModalEscolherImagem() {
+  document.getElementById("modal-escolher-imagem").classList.add("oculto");
+}
+
+function renderizarSeletorImagens() {
+  const container = document.getElementById("heroi-imagens");
+  if (!container) return;
+  container.innerHTML = "";
+
+  const btnNenhuma = document.createElement("button");
+  btnNenhuma.type      = "button";
+  btnNenhuma.title     = "Sem imagem (usa a inicial do nome)";
+  btnNenhuma.className = "imagem-heroi-btn imagem-heroi-btn--nenhuma"
+    + (!_imagemSelecionada ? " imagem-heroi-btn--selecionada" : "");
+  btnNenhuma.textContent = "✕";
+  btnNenhuma.addEventListener("click", () => {
+    _imagemSelecionada = null;
+    atualizarPreviewImagemHeroi();
+    fecharModalEscolherImagem();
+  });
+  container.appendChild(btnNenhuma);
+
+  IMAGENS_HEROI.forEach(img => {
+    const btn = document.createElement("button");
+    btn.type      = "button";
+    btn.title     = img.label;
+    btn.className = "imagem-heroi-btn"
+      + (_imagemSelecionada === img.id ? " imagem-heroi-btn--selecionada" : "");
+    btn.innerHTML = `<img src="img/herois/${img.id}_white.png" alt="${img.label}">`;
+    btn.addEventListener("click", () => {
+      _imagemSelecionada = img.id;
+      atualizarPreviewImagemHeroi();
+      fecharModalEscolherImagem();
+    });
+    container.appendChild(btn);
+  });
+}
+
+/** Preenche um elemento de avatar com a imagem escolhida do herói, ou a inicial do nome como fallback */
+function preencherAvatar(elemento, nome, imagemBase) {
+  elemento.innerHTML = "";
+  if (imagemBase) {
+    const img = document.createElement("img");
+    img.className = "avatar-img";
+    img.src = `img/herois/${imagemBase}_white.png`;
+    img.alt = nome || "";
+    elemento.appendChild(img);
+  } else {
+    elemento.textContent = (nome || "?").trim().charAt(0).toUpperCase() || "?";
+  }
+}
+
+/** Resolve a imagem escolhida de um combatente da iniciativa (só heróis têm) */
+function obterImagemCriatura(criatura) {
+  if (!criatura.idHeroi) return null;
+  const h = partyHerois.find(h => h.id === criatura.idHeroi);
+  return h?.imagem || null;
+}
+
 function renderizarSeletorCores(idEdicao = null) {
   const container = document.getElementById("heroi-cores");
   if (!container) return;
@@ -127,6 +231,19 @@ function salvarESincronizar() {
 /* ==========================================================================
    3. MODAL DE NOVO HERÓI
    ========================================================================== */
+/** Aplica a EXP acumulada ao nível, subindo de nível (podendo subir mais de um) quando a EXP bate a meta definida pelo mestre */
+function aplicarExpENivel(nivelInicial, expInicial, expMeta) {
+  let nivel = nivelInicial;
+  let exp   = expInicial;
+  let subiuNivel = false;
+  while (expMeta > 0 && exp >= expMeta) {
+    exp -= expMeta;
+    nivel++;
+    subiuNivel = true;
+  }
+  return { nivel, exp, subiuNivel };
+}
+
 function abrirModalHeroi(idEdicao = null) {
   // Se idEdicao não for uma string (ex: for o objeto de evento de clique), reseta para null
   if (typeof idEdicao !== "string") idEdicao = null;
@@ -140,6 +257,8 @@ function abrirModalHeroi(idEdicao = null) {
   document.getElementById("heroi-nivel").value  = heroi ? heroi.nivel  : "1";
   document.getElementById("heroi-hp").value     = heroi ? heroi.hpMax  : "10";
   document.getElementById("heroi-ca").value     = heroi ? heroi.ca     : "10";
+  document.getElementById("heroi-exp").value      = heroi ? (heroi.exp || 0) : "0";
+  document.getElementById("heroi-exp-meta").value = heroi ? (heroi.expMeta || 1000) : "1000";
 
   // Seletor de cores — em edição permite trocar, mas bloqueia cores de OUTROS heróis
   const coresUsadas = partyHerois
@@ -148,7 +267,10 @@ function abrirModalHeroi(idEdicao = null) {
   const primeiraLivre = CORES_HEROI.find(c => !coresUsadas.includes(c.id));
   _corSelecionada = heroi?.cor || (primeiraLivre ? primeiraLivre.id : null);
 
+  _imagemSelecionada = heroi?.imagem || null;
+
   renderizarSeletorCores(idEdicao);
+  atualizarPreviewImagemHeroi();
   document.getElementById("modal-heroi").classList.remove("oculto");
   document.getElementById("heroi-nome").focus();
 }
@@ -169,12 +291,20 @@ function confirmarNovoHeroi() {
     if (!heroi) return;
 
     const hpMaxAnterior = heroi.hpMax;
-    heroi.nome   = nome;
-    heroi.classe = document.getElementById("heroi-classe").value.trim() || "Aventureiro";
-    heroi.nivel  = document.getElementById("heroi-nivel").value || "1";
-    heroi.hpMax  = parseInt(document.getElementById("heroi-hp").value) || 10;
-    heroi.ca     = parseInt(document.getElementById("heroi-ca").value) || 10;
-    heroi.cor    = _corSelecionada;
+    const nivelInformado = parseInt(document.getElementById("heroi-nivel").value) || 1;
+    const expInformada   = parseInt(document.getElementById("heroi-exp").value) || 0;
+    const expMeta        = parseInt(document.getElementById("heroi-exp-meta").value) || 1000;
+    const { nivel, exp, subiuNivel } = aplicarExpENivel(nivelInformado, expInformada, expMeta);
+
+    heroi.nome    = nome;
+    heroi.classe  = document.getElementById("heroi-classe").value.trim() || "Aventureiro";
+    heroi.nivel   = nivel;
+    heroi.exp     = exp;
+    heroi.expMeta = expMeta;
+    heroi.hpMax   = parseInt(document.getElementById("heroi-hp").value) || 10;
+    heroi.ca      = parseInt(document.getElementById("heroi-ca").value) || 10;
+    heroi.cor     = _corSelecionada;
+    heroi.imagem  = _imagemSelecionada || "";
 
     // Atualiza hpMax na iniciativa também se mudou
     if (heroi.hpMax !== hpMaxAnterior) {
@@ -183,21 +313,73 @@ function confirmarNovoHeroi() {
     }
 
     adicionarHistorico(`✏️ ${heroi.nome} foi editado.`);
+    if (subiuNivel) adicionarHistorico(`📈 ${heroi.nome} subiu para o nível ${nivel}!`);
   } else {
     // CRIAÇÃO
+    const nivelInformado = parseInt(document.getElementById("heroi-nivel").value) || 1;
+    const expInformada   = parseInt(document.getElementById("heroi-exp").value) || 0;
+    const expMeta        = parseInt(document.getElementById("heroi-exp-meta").value) || 1000;
+    const { nivel, exp } = aplicarExpENivel(nivelInformado, expInformada, expMeta);
+
     partyHerois.push({
-      id:     "h_" + Date.now(),
+      id:      "h_" + Date.now(),
       nome,
-      classe: document.getElementById("heroi-classe").value.trim() || "Aventureiro",
-      nivel:  document.getElementById("heroi-nivel").value || "1",
-      hpMax:  parseInt(document.getElementById("heroi-hp").value) || 10,
-      ca:     parseInt(document.getElementById("heroi-ca").value) || 10,
-      cor:    _corSelecionada,
-      imagem: ""
+      classe:  document.getElementById("heroi-classe").value.trim() || "Aventureiro",
+      nivel,
+      exp,
+      expMeta,
+      hpMax:   parseInt(document.getElementById("heroi-hp").value) || 10,
+      ca:      parseInt(document.getElementById("heroi-ca").value) || 10,
+      cor:     _corSelecionada,
+      imagem:  _imagemSelecionada || ""
     });
   }
 
   fecharModalHeroi();
+  salvarESincronizar();
+}
+
+/* ==========================================================================
+   3a. MODAL DE EXP DO HERÓI
+   ========================================================================== */
+let _idHeroiExpAtual = null;
+
+function abrirModalExpHeroi(idHeroi) {
+  const heroi = partyHerois.find(h => h.id === idHeroi);
+  if (!heroi) return;
+
+  _idHeroiExpAtual = idHeroi;
+  const expMeta = heroi.expMeta || 1000;
+
+  document.getElementById("modal-exp-heroi-titulo").textContent = `EXP — ${heroi.nome}`;
+  document.getElementById("exp-heroi-nivel").textContent = `Nível atual: ${heroi.nivel}`;
+  document.getElementById("exp-heroi-atual").textContent = `EXP atual: ${heroi.exp || 0} / ${expMeta}`;
+  document.getElementById("exp-heroi-adicionar").value = "";
+
+  document.getElementById("modal-exp-heroi").classList.remove("oculto");
+  document.getElementById("exp-heroi-adicionar").focus();
+}
+
+function fecharModalExpHeroi() {
+  document.getElementById("modal-exp-heroi").classList.add("oculto");
+  _idHeroiExpAtual = null;
+}
+
+function confirmarExpHeroi() {
+  const heroi = partyHerois.find(h => h.id === _idHeroiExpAtual);
+  if (!heroi) { fecharModalExpHeroi(); return; }
+
+  const valorAdicionado = parseInt(document.getElementById("exp-heroi-adicionar").value) || 0;
+  const expMeta = heroi.expMeta || 1000;
+  const { nivel, exp, subiuNivel } = aplicarExpENivel(heroi.nivel, (heroi.exp || 0) + valorAdicionado, expMeta);
+
+  heroi.nivel = nivel;
+  heroi.exp   = exp;
+
+  if (valorAdicionado) adicionarHistorico(`✨ ${heroi.nome} ganhou ${valorAdicionado} de EXP!`);
+  if (subiuNivel) adicionarHistorico(`📈 ${heroi.nome} subiu para o nível ${nivel}!`);
+
+  fecharModalExpHeroi();
   salvarESincronizar();
 }
 
@@ -1269,10 +1451,33 @@ function abrirTurnoAcaoCura() {
   abrirModalDanoCura([atual.id], "cura");
 }
 
+/** Botão de morte/nocaute: herói vai a nocauteado, monstro vai a morto. Clicar de novo reverte. */
+function alternarMortoNocaute(id) {
+  const criatura = listaDeIniciativa.find(c => c.id === id);
+  if (!criatura) return;
+
+  if (criatura.morto || criatura.nocauteado) {
+    criatura.morto      = false;
+    criatura.nocauteado = false;
+    adicionarHistorico(`💚 ${criatura.nome} foi revivido!`, "sucesso");
+  } else if (criatura.idHeroi) {
+    if (!confirm(`Nocautear "${criatura.nome}"?`)) return;
+    criatura.nocauteado = true;
+    adicionarHistorico(`😵 ${criatura.nome} foi nocauteado!`, "falha");
+  } else {
+    if (!confirm(`Marcar "${criatura.nome}" como morto?`)) return;
+    criatura.morto = true;
+    adicionarHistorico(`☠️ ${criatura.nome} morreu!`, "falha");
+  }
+
+  salvarESincronizar();
+}
+
+/** Botão de morte/nocaute do combatente ativo no painel de turno */
 function abrirTurnoAcaoMorto() {
   const atual = listaDeIniciativa[turnoAtivo];
   if (!atual) return;
-  marcarMorto(atual.id);
+  alternarMortoNocaute(atual.id);
 }
 
 function atualizarPainelTurno() {
@@ -1348,7 +1553,7 @@ function atualizarPainelTurno() {
 
   const avatar = document.createElement("div");
   avatar.className = "turno-ativo-avatar";
-  avatar.textContent = (atual.nome || "?").trim().charAt(0).toUpperCase() || "?";
+  preencherAvatar(avatar, atual.nome, obterImagemCriatura(atual));
   if (corHeroi) avatar.style.borderColor = corHeroi;
 
   const infoCol = document.createElement("div");
@@ -1357,6 +1562,21 @@ function atualizarPainelTurno() {
   const badge = document.createElement("span");
   badge.className = "turno-ativo-badge";
   badge.textContent = "TURNO ATUAL";
+
+  const badgeLinha = document.createElement("div");
+  badgeLinha.className = "turno-ativo-badge-linha";
+
+  const estaCaido = atual.morto || atual.nocauteado;
+  const btnMorto = document.createElement("button");
+  btnMorto.id = "btn-turno-morto";
+  btnMorto.type = "button";
+  btnMorto.className = "btn-turno-morto-icone";
+  btnMorto.title = estaCaido ? "Reviver" : "Marcar como Morto ou Nocautear";
+  btnMorto.textContent = "☠️";
+  btnMorto.addEventListener("click", abrirTurnoAcaoMorto);
+
+  badgeLinha.appendChild(badge);
+  badgeLinha.appendChild(btnMorto);
 
   const linhaInfo = document.createElement("div");
   linhaInfo.className = "turno-ativo-header";
@@ -1385,7 +1605,7 @@ function atualizarPainelTurno() {
   linhaInfo.appendChild(nome);
   linhaInfo.appendChild(dadosLado);
 
-  infoCol.appendChild(badge);
+  infoCol.appendChild(badgeLinha);
   infoCol.appendChild(linhaInfo);
 
   topoLinha.appendChild(avatar);
@@ -1480,8 +1700,8 @@ function atualizarPainelTurno() {
   btnCura.addEventListener("click", abrirTurnoAcaoCura);
 
   divAcoesTurno.appendChild(btnAtaque);
-  divAcoesTurno.appendChild(btnCondicao);
   divAcoesTurno.appendChild(btnCura);
+  divAcoesTurno.appendChild(btnCondicao);
 
   // Montagem final do card de turno ativo
   cardEl.appendChild(cabecalho);
@@ -1591,10 +1811,12 @@ function atualizarIniciativa() {
       + (!personagem.idHeroi                          ? " item-iniciativa--monstro"    : "");
 
     // Cor do herói na borda esquerda (e fundo suave quando ativo)
+    let corHeroiHex = null;
     if (personagem.idHeroi) {
       const h   = partyHerois.find(h => h.id === personagem.idHeroi);
       const cor = h?.cor ? CORES_HEROI.find(c => c.id === h.cor) : null;
       if (cor) {
+        corHeroiHex = cor.hex;
         item.style.borderLeft = `4px solid ${cor.hex}`;
         if (ativo && !personagem.morto) {
           item.style.background = `${cor.hex}22`; // 22 = ~13% opacidade
@@ -1626,17 +1848,34 @@ function atualizarIniciativa() {
 
     const avatar = document.createElement("div");
     avatar.className = "item-ini-avatar";
-    const inicial = (personagem.nome || "?").trim().charAt(0).toUpperCase() || "?";
-    avatar.textContent = inicial;
+    preencherAvatar(avatar, personagem.nome, obterImagemCriatura(personagem));
 
     const dados = document.createElement("div");
     dados.className = "item-ini-dados";
+
+    const nomeLinha = document.createElement("div");
+    nomeLinha.className = "item-ini-nome-linha";
 
     const nome = document.createElement("div");
     nome.className = "item-iniciativa-nome";
     nome.textContent = (personagem.morto ? "☠️ " : "")
       + (personagem.nocauteado && !personagem.morto ? "😵 " : "")
       + personagem.nome;
+    if (corHeroiHex && !personagem.morto && !personagem.nocauteado) nome.style.color = corHeroiHex;
+
+    const estaCaidoCombate = personagem.morto || personagem.nocauteado;
+    const btnMortoCombate = document.createElement("button");
+    btnMortoCombate.type = "button";
+    btnMortoCombate.className = "btn-turno-morto-icone btn-morto-item-ini";
+    btnMortoCombate.title = estaCaidoCombate ? "Reviver" : "Marcar como Morto ou Nocautear";
+    btnMortoCombate.textContent = "☠️";
+    btnMortoCombate.addEventListener("click", (e) => {
+      e.stopPropagation();
+      alternarMortoNocaute(personagem.id);
+    });
+
+    nomeLinha.appendChild(nome);
+    nomeLinha.appendChild(btnMortoCombate);
 
     const caLinha = document.createElement("div");
     caLinha.className = "item-ini-info";
@@ -1661,7 +1900,7 @@ function atualizarIniciativa() {
     barraFill.style.background = corHP;
     barraWrap.appendChild(barraFill);
 
-    dados.appendChild(nome);
+    dados.appendChild(nomeLinha);
     dados.appendChild(caLinha);
     dados.appendChild(vidaLinha);
     dados.appendChild(barraWrap);
@@ -1671,7 +1910,7 @@ function atualizarIniciativa() {
 
     // Card resumido: só o ícone de cada condição (nome completo no title), com
     // um "+N" para o excedente — evita a barra de rolagem quando há muitas condições
-    const MAX_CONDICOES_VISIVEIS = 8;
+    const MAX_CONDICOES_VISIVEIS = 4;
     const condTags = document.createElement("div");
     condTags.className = "item-ini-condicoes";
     const condsValidas = condicoes
@@ -1755,10 +1994,46 @@ function renderizarStatusGrupo() {
 
     const card = document.createElement("div");
     card.className = "card-heroi";
+    let corHeroiHex = null;
     if (heroi.cor) {
       const cor = CORES_HEROI.find(c => c.id === heroi.cor);
-      if (cor) card.style.borderLeftColor = cor.hex;
+      if (cor) {
+        corHeroiHex = cor.hex;
+        card.style.borderLeftColor = cor.hex;
+      }
     }
+
+    // Corpo: avatar (imagem do herói) + coluna com o restante das informações
+    const corpo = document.createElement("div");
+    corpo.className = "card-heroi-corpo";
+
+    const expMeta = heroi.expMeta || 1000;
+    const pctExp  = Math.max(0, Math.min(100, ((heroi.exp || 0) / expMeta) * 100));
+
+    const avatarAnel = document.createElement("div");
+    avatarAnel.className = "card-heroi-avatar-anel";
+    avatarAnel.style.setProperty("--pct-exp", pctExp);
+    avatarAnel.title = `EXP: ${heroi.exp || 0} / ${expMeta}`;
+
+    const avatar = document.createElement("div");
+    avatar.className = "card-heroi-avatar";
+    preencherAvatar(avatar, heroi.nome, heroi.imagem);
+    avatarAnel.appendChild(avatar);
+
+    const avatarCol = document.createElement("div");
+    avatarCol.className = "card-heroi-avatar-col";
+
+    const btnExp = document.createElement("button");
+    btnExp.textContent = "+ EXP";
+    btnExp.className   = "btn-exp-heroi";
+    btnExp.title       = "Adicionar EXP";
+    btnExp.addEventListener("click", () => abrirModalExpHeroi(heroi.id));
+
+    avatarCol.appendChild(avatarAnel);
+    avatarCol.appendChild(btnExp);
+
+    const info = document.createElement("div");
+    info.className = "card-heroi-info";
 
     // Topo: nome + iniciativa + botão remover
     const topo = document.createElement("div");
@@ -1767,10 +2042,13 @@ function renderizarStatusGrupo() {
     const nomeSpan = document.createElement("span");
     nomeSpan.className   = "card-heroi-nome";
     nomeSpan.textContent = heroi.nome;
+    if (corHeroiHex) nomeSpan.style.color = corHeroiHex;
 
-    const iniSpan = document.createElement("span");
-    iniSpan.className   = "card-heroi-ini";
-    iniSpan.textContent = `Ini: ${valorIni}`;
+    const btnIni = document.createElement("button");
+    btnIni.textContent = naIni ? `Ini: ${valorIni}` : "+ Iniciativa";
+    btnIni.className   = "btn-ini-heroi";
+    btnIni.title       = naIni ? "Atualizar iniciativa" : "Lançar iniciativa";
+    btnIni.addEventListener("click", () => lancarIniciativaHeroi(heroi.id));
 
     const btnRemover = document.createElement("button");
     btnRemover.textContent = "✕";
@@ -1785,7 +2063,7 @@ function renderizarStatusGrupo() {
     btnEditar.addEventListener("click", () => abrirModalHeroi(heroi.id));
 
     topo.appendChild(nomeSpan);
-    topo.appendChild(iniSpan);
+    topo.appendChild(btnIni);
     topo.appendChild(btnEditar);
     topo.appendChild(btnRemover);
 
@@ -1803,7 +2081,7 @@ function renderizarStatusGrupo() {
     barraFill.style.background = corHP;
     barraWrap.appendChild(barraFill);
 
-    // Rodapé: HP (− input +) + botão iniciativa
+    // Rodapé: HP Temp (− input +)
     const rodape = document.createElement("div");
     rodape.className = "card-heroi-rodape";
 
@@ -1811,7 +2089,7 @@ function renderizarStatusGrupo() {
     divHP.className = "card-heroi-hp";
 
     const labelHP = document.createElement("label");
-    labelHP.textContent = "HP:";
+    labelHP.textContent = "HP Temp:";
 
     const btnMenos = document.createElement("button");
     btnMenos.textContent = "−";
@@ -1839,18 +2117,16 @@ function renderizarStatusGrupo() {
     divHP.appendChild(inputHP);
     divHP.appendChild(btnMais);
 
-    const btnIni = document.createElement("button");
-    btnIni.textContent = naIni ? "Atualizar Ini" : "+ Iniciativa";
-    btnIni.className   = "btn-ini-heroi";
-    btnIni.addEventListener("click", () => lancarIniciativaHeroi(heroi.id));
-
     rodape.appendChild(divHP);
-    rodape.appendChild(btnIni);
 
-    card.appendChild(topo);
-    card.appendChild(sub);
-    card.appendChild(barraWrap);
-    card.appendChild(rodape);
+    info.appendChild(topo);
+    info.appendChild(sub);
+    info.appendChild(barraWrap);
+    info.appendChild(rodape);
+
+    corpo.appendChild(avatarCol);
+    corpo.appendChild(info);
+    card.appendChild(corpo);
     container.appendChild(card);
   });
 }
@@ -1942,6 +2218,7 @@ function limparIniciativa() {
   turnoAtivo         = 0;
   rodadaAtual        = 1;
   efeitosTemporarios = [];
+  adicionarHistorico("🏳️ Combate encerrado!");
   salvarESincronizar();
 }
 
@@ -2305,6 +2582,15 @@ window.onload = () => {
   document.getElementById("btn-confirmar-heroi").addEventListener("click", confirmarNovoHeroi);
   window.addEventListener("click", (e) => { if (e.target === document.getElementById("modal-heroi")) fecharModalHeroi(); });
   document.getElementById("modal-heroi").addEventListener("keydown", (e) => { if (e.key === "Enter") confirmarNovoHeroi(); });
+
+  document.getElementById("btn-escolher-imagem-heroi").addEventListener("click", abrirModalEscolherImagem);
+  document.getElementById("fechar-escolher-imagem").addEventListener("click", fecharModalEscolherImagem);
+  window.addEventListener("click", (e) => { if (e.target === document.getElementById("modal-escolher-imagem")) fecharModalEscolherImagem(); });
+
+  document.getElementById("fechar-exp-heroi").addEventListener("click", fecharModalExpHeroi);
+  document.getElementById("btn-confirmar-exp-heroi").addEventListener("click", confirmarExpHeroi);
+  window.addEventListener("click", (e) => { if (e.target === document.getElementById("modal-exp-heroi")) fecharModalExpHeroi(); });
+  document.getElementById("modal-exp-heroi").addEventListener("keydown", (e) => { if (e.key === "Enter") confirmarExpHeroi(); });
 
   document.getElementById("btn-abrir-monstros").addEventListener("click", abrirModalMonstrosLista);
   document.getElementById("fechar-monstros-lista").addEventListener("click", fecharModalMonstrosLista);

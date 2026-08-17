@@ -8,15 +8,15 @@ https://game-icons.net/
 
 Falta implementar:
 
-Mudar botão de iniciativa para on click Virar o número
+FEITO Mudar botão de iniciativa para on click Virar o número
 EXP bordinha enchendo
-Histórico mais alto e fino, finura do combate
-Anotações pra direita mais alto e mais fino
-Botão status e grupo e controle de turno ficam com o que sobrar
-Lista de monstros adicionar janela no combate
-Dice roller flutuante ou cabeçalho
-Horrio no historico
-Onde tá a cor do heroi vai virar barra de vida
+FEITO Histórico mais alto e fino, finura do combate
+FEITO Anotações pra direita mais alto e mais fino
+FEITO Botão status e grupo e controle de turno ficam com o que sobrar
+FEITO Lista de monstros adicionar janela no combate
+Alterado para navbar MAS FEITO - Dice roller flutuante ou cabeçalho
+FEITO Horario no historico
+NÃO VAI MUDAR Onde tá a cor do heroi vai virar barra de vida
 Cor do heroi fica no nome e no fundo do card
 
 Fazer um modo inglês
