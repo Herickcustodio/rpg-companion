@@ -442,6 +442,19 @@ function abrirModalCondicaoDuracao(criaturaId, condicaoId) {
 function fecharModalCondicaoDuracao() {
   document.getElementById("modal-condicao-duracao").classList.add("oculto");
   _condicaoCtx = null;
+
+  // Se o popover de condições do turno estava aberto (e só escondido para dar
+  // lugar a este modal), reexibe ele já atualizado para escolher outra condição.
+  if (_popoverCondicaoTurno && document.body.contains(_popoverCondicaoTurno)) {
+    const atual = listaDeIniciativa[turnoAtivo];
+    if (atual) {
+      renderizarOpcoesPopoverCondicao(_popoverCondicaoTurno, atual);
+      _popoverCondicaoTurno.style.display = "";
+    } else {
+      _popoverCondicaoTurno.remove();
+      _popoverCondicaoTurno = null;
+    }
+  }
 }
 
 function confirmarCondicao() {
@@ -546,9 +559,11 @@ function fecharModalArea() {
   document.getElementById("modal-area").classList.add("oculto");
 }
 
-function renderizarAlvosArea() {
-  const lista = document.getElementById("area-alvos-lista");
+/** Renderiza uma lista de combatentes com checkbox (usada em Área, Acerto e Dano) */
+function renderizarListaAlvos(containerId, { preSelecionados = [], mostrarCA = false } = {}) {
+  const lista = document.getElementById(containerId);
   lista.innerHTML = "";
+  const preSet = new Set(preSelecionados.map(String));
 
   listaDeIniciativa.forEach(c => {
     const row = document.createElement("label");
@@ -557,7 +572,7 @@ function renderizarAlvosArea() {
     const cb = document.createElement("input");
     cb.type    = "checkbox";
     cb.value   = c.id;
-    cb.checked = !c.morto; // mortos vêm desmarcados por padrão
+    cb.checked = preSet.has(String(c.id));
     cb.className = "area-alvo-cb";
 
     const corHeroi = (() => {
@@ -567,14 +582,26 @@ function renderizarAlvosArea() {
       return cor?.hex ?? null;
     })();
 
+    const caValor = mostrarCA ? obterCACriatura(c) : null;
+
     const info = document.createElement("span");
     info.className = "area-alvo-info";
     if (corHeroi) info.style.borderLeftColor = corHeroi;
-    info.innerHTML = `<span class="area-alvo-nome">${c.nome}</span><span class="area-alvo-hp">❤️ ${c.hpAtual}/${c.hpMax}</span>`;
+    info.innerHTML = `<span class="area-alvo-nome">${c.nome}</span><span class="area-alvo-hp">❤️ ${c.hpAtual}/${c.hpMax}${caValor !== null ? ` · 🛡️ CA ${caValor}` : ""}</span>`;
 
     row.appendChild(cb);
     row.appendChild(info);
     lista.appendChild(row);
+  });
+}
+
+function selecionarTodosAlvos(containerId, selecionar) {
+  document.querySelectorAll(`#${containerId} .area-alvo-cb`).forEach(cb => cb.checked = selecionar);
+}
+
+function renderizarAlvosArea() {
+  renderizarListaAlvos("area-alvos-lista", {
+    preSelecionados: listaDeIniciativa.filter(c => !c.morto).map(c => c.id),
   });
 }
 
@@ -597,17 +624,13 @@ function rolarDadoArea() {
   document.getElementById("area-valor-manual").value  = total;
 }
 
-function selecionarTodosArea(sel) {
-  document.querySelectorAll(".area-alvo-cb").forEach(cb => cb.checked = sel);
-}
-
 function confirmarDanoArea() {
   const valor = parseInt(document.getElementById("area-valor-manual").value);
   if (isNaN(valor) || valor < 0) {
     document.getElementById("area-valor-manual").focus(); return;
   }
 
-  const selecionados = [...document.querySelectorAll(".area-alvo-cb:checked")].map(cb => cb.value);
+  const selecionados = [...document.querySelectorAll("#area-alvos-lista .area-alvo-cb:checked")].map(cb => cb.value);
   if (selecionados.length === 0) {
     alert("Selecione pelo menos um alvo!"); return;
   }
@@ -627,6 +650,99 @@ function confirmarDanoArea() {
   salvarESincronizar();
 }
 
+/* ==========================================================================
+   CURA EM ÁREA
+   ========================================================================== */
+function abrirModalCuraArea() {
+  if (listaDeIniciativa.length === 0) {
+    alert("Não há combatentes no combate!");
+    return;
+  }
+
+  // Curador — pré-seleciona o ativo do turno, mas pode ser trocado
+  const sel   = document.getElementById("cura-area-curador");
+  sel.innerHTML = "";
+  const ativo = listaDeIniciativa[turnoAtivo];
+  listaDeIniciativa.filter(c => !c.morto).forEach(c => {
+    const opt = document.createElement("option");
+    opt.value = c.id;
+    opt.textContent = c.nome;
+    if (ativo && c.id === ativo.id) opt.selected = true;
+    sel.appendChild(opt);
+  });
+
+  document.getElementById("cura-area-qtd").value          = "1";
+  document.getElementById("cura-area-tipo").value         = "8";
+  document.getElementById("cura-area-modificador").value  = "0";
+  document.getElementById("cura-area-valor-manual").value = "";
+  document.getElementById("cura-area-resultado").textContent = "—";
+  document.getElementById("cura-area-formula").textContent   = "";
+
+  renderizarListaAlvos("cura-area-alvos-lista", {
+    preSelecionados: listaDeIniciativa.filter(c => !c.morto).map(c => c.id),
+  });
+
+  document.getElementById("modal-cura-area").classList.remove("oculto");
+}
+
+function fecharModalCuraArea() {
+  document.getElementById("modal-cura-area").classList.add("oculto");
+}
+
+function rolarDadoCuraArea() {
+  const qtd   = parseInt(document.getElementById("cura-area-qtd").value)         || 1;
+  const lados = parseInt(document.getElementById("cura-area-tipo").value)        || 8;
+  const mod   = parseInt(document.getElementById("cura-area-modificador").value) || 0;
+
+  let soma = 0;
+  const rolagens = [];
+  for (let i = 0; i < qtd; i++) {
+    const r = Math.floor(Math.random() * lados) + 1;
+    soma += r; rolagens.push(r);
+  }
+  const total = Math.max(0, soma + mod);
+
+  document.getElementById("cura-area-resultado").textContent = total;
+  const sinal = mod >= 0 ? "+" : "";
+  document.getElementById("cura-area-formula").textContent = `(${qtd}d${lados}: [${rolagens.join(", ")}] ${sinal}${mod})`;
+  document.getElementById("cura-area-valor-manual").value   = total;
+}
+
+function confirmarCuraArea() {
+  const valor = parseInt(document.getElementById("cura-area-valor-manual").value);
+  if (isNaN(valor) || valor < 0) {
+    document.getElementById("cura-area-valor-manual").focus(); return;
+  }
+
+  const selecionados = [...document.querySelectorAll("#cura-area-alvos-lista .area-alvo-cb:checked")]
+    .map(cb => listaDeIniciativa.find(c => c.id == cb.value))
+    .filter(Boolean);
+  if (selecionados.length === 0) {
+    alert("Selecione pelo menos um alvo!"); return;
+  }
+
+  const sel       = document.getElementById("cura-area-curador");
+  const curadorId = sel ? sel.value : null;
+  const curador   = curadorId ? listaDeIniciativa.find(c => c.id == curadorId) : null;
+
+  const nomes = [];
+  selecionados.forEach(c => {
+    const antes = c.hpAtual;
+    c.hpAtual = Math.min(c.hpMax, c.hpAtual + valor);
+    nomes.push(`${c.nome} (${antes}→${c.hpAtual})`);
+    if (c.nocauteado && c.hpAtual > 0) {
+      c.nocauteado = false;
+      adicionarHistorico(`💪 ${c.nome} se recuperou do nocaute!`, "sucesso");
+    }
+  });
+
+  const prefixo = curador ? `${curador.nome} curou` : "Cura em área";
+  adicionarHistorico(`💚 ${prefixo} (${valor}): ${nomes.join(", ")}`, "sucesso");
+
+  fecharModalCuraArea();
+  salvarESincronizar();
+}
+
 
 /** Processa HP zerado: monstro morre, herói fica nocauteado */
 function processarHPZero(criatura) {
@@ -642,58 +758,25 @@ function processarHPZero(criatura) {
   }
 }
 
-let _modalDanoCuraId   = null;
+let _modalDanoCuraIds  = [];
 let _modalDanoCuraTipo = null;
 
 /* ==========================================================================
    MODAL DE ACERTO
    ========================================================================== */
-let _acertoAlvoId     = null;
 let _acertoAtacanteId = null;
 
-function abrirModalAcerto(alvoId) {
-  const alvo = listaDeIniciativa.find(c => c.id === alvoId);
-  if (!alvo) return;
+function abrirModalAcerto(atacanteId) {
+  const atacante = listaDeIniciativa.find(c => c.id === atacanteId);
+  if (!atacante) return;
 
-  _acertoAlvoId = alvoId;
+  _acertoAtacanteId = atacanteId;
 
-  document.getElementById("modal-acerto-titulo").textContent = `🎯 Acerto — ${alvo.nome}`;
+  document.getElementById("modal-acerto-titulo").textContent = `🎯 Acerto — ${atacante.nome}`;
+  document.getElementById("acerto-atacante-info").innerHTML  = `⚔️ Atacante: <strong>${atacante.nome}</strong>`;
 
-  // CA do alvo como referência
-  const caRef   = document.getElementById("acerto-ca-ref");
-  const caValor = (() => {
-    if (alvo.idHeroi) {
-      const h = partyHerois.find(h => h.id === alvo.idHeroi);
-      return h?.ca ?? null;
-    }
-    if (alvo.idMonstroCustom) {
-      const mc = monstrosCustom.find(m => m.id === alvo.idMonstroCustom);
-      if (mc) return mc.ca ?? null;
-    }
-    const m = coletaneaMonstros.find(m => m.nome === alvo.nomeBase);
-    return m?.ca ?? null;
-  })();
-
-  if (caValor !== null) {
-    caRef.style.display = "block";
-    caRef.innerHTML     = `🛡️ CA do alvo: <strong>${caValor}</strong>`;
-    document.getElementById("acerto-valor-necessario").value = caValor;
-  } else {
-    caRef.style.display = "none";
-    document.getElementById("acerto-valor-necessario").value = "";
-  }
-
-  // Atacante — pré-seleciona o ativo do turno
-  const sel   = document.getElementById("acerto-atacante");
-  sel.innerHTML = "";
-  const ativo = listaDeIniciativa[turnoAtivo];
-  listaDeIniciativa.filter(c => !c.morto).forEach(c => {
-    const opt = document.createElement("option");
-    opt.value = c.id;
-    opt.textContent = c.nome;
-    if (ativo && c.id === ativo.id) opt.selected = true;
-    sel.appendChild(opt);
-  });
+  // Lista de alvos — nada pré-selecionado, o mestre escolhe quem é atacado
+  renderizarListaAlvos("acerto-alvos-lista", { mostrarCA: true });
 
   // Reseta campos
   document.getElementById("acerto-qtd").value         = "1";
@@ -701,6 +784,7 @@ function abrirModalAcerto(alvoId) {
   document.getElementById("acerto-modificador").value = "0";
   document.getElementById("acerto-resultado-wrap").style.display  = "none";
   document.getElementById("acerto-resultado-display").innerHTML   = "";
+  document.getElementById("acerto-resultado-alvos").innerHTML     = "";
 
   document.getElementById("modal-acerto").classList.remove("oculto");
   document.getElementById("acerto-modificador").focus();
@@ -708,15 +792,19 @@ function abrirModalAcerto(alvoId) {
 
 function fecharModalAcerto() {
   document.getElementById("modal-acerto").classList.add("oculto");
-  _acertoAlvoId     = null;
   _acertoAtacanteId = null;
 }
 
+function alvosSelecionadosAcerto() {
+  return [...document.querySelectorAll("#acerto-alvos-lista .area-alvo-cb:checked")]
+    .map(cb => listaDeIniciativa.find(c => c.id == cb.value))
+    .filter(Boolean);
+}
+
 function rolarAcerto() {
-  const qtd        = parseInt(document.getElementById("acerto-qtd").value)         || 1;
-  const lados      = parseInt(document.getElementById("acerto-tipo").value)        || 20;
-  const mod        = parseInt(document.getElementById("acerto-modificador").value) || 0;
-  const necessario = parseInt(document.getElementById("acerto-valor-necessario").value);
+  const qtd   = parseInt(document.getElementById("acerto-qtd").value)         || 1;
+  const lados = parseInt(document.getElementById("acerto-tipo").value)        || 20;
+  const mod   = parseInt(document.getElementById("acerto-modificador").value) || 0;
 
   let soma = 0;
   const rolagens = [];
@@ -728,57 +816,75 @@ function rolarAcerto() {
   const sinal   = mod >= 0 ? "+" : "";
   const formula = `(${qtd}d${lados}: [${rolagens.join(", ")}] ${sinal}${mod})`;
 
-  const wrap    = document.getElementById("acerto-resultado-wrap");
-  const display = document.getElementById("acerto-resultado-display");
-  wrap.style.display = "block";
-
-  const alvo     = listaDeIniciativa.find(c => c.id === _acertoAlvoId);
-  const sel      = document.getElementById("acerto-atacante");
-  const atacante = listaDeIniciativa.find(c => c.id == sel.value);
-  _acertoAtacanteId = sel.value;
-
-  const acertou      = !isNaN(necessario) ? total >= necessario : null;
   const critico      = lados === 20 && qtd === 1 && rolagens[0] === 20;
   const falhaCritica = lados === 20 && qtd === 1 && rolagens[0] === 1;
 
-  let badge = "";
-  if (critico)           badge = `<span class="acerto-badge acerto-badge--critico">⚔️ Crítico!</span>`;
-  else if (falhaCritica) badge = `<span class="acerto-badge acerto-badge--falha">💀 Falha Crítica!</span>`;
-  else if (acertou === true)  badge = `<span class="acerto-badge acerto-badge--acertou">✅ Acertou!</span>`;
-  else if (acertou === false) badge = `<span class="acerto-badge acerto-badge--errou">❌ Errou!</span>`;
+  const wrap        = document.getElementById("acerto-resultado-wrap");
+  const display      = document.getElementById("acerto-resultado-display");
+  const alvosDisplay = document.getElementById("acerto-resultado-alvos");
+  wrap.style.display = "block";
+
+  let badgeGeral = "";
+  if (critico)           badgeGeral = `<span class="acerto-badge acerto-badge--critico">⚔️ Crítico!</span>`;
+  else if (falhaCritica) badgeGeral = `<span class="acerto-badge acerto-badge--falha">💀 Falha Crítica!</span>`;
 
   display.innerHTML = `
     <div class="acerto-total ${critico ? "acerto-total--critico" : falhaCritica ? "acerto-total--falha" : ""}">${total}</div>
     <div class="acerto-formula">${formula}</div>
-    ${badge}
+    ${badgeGeral}
   `;
 
-  // Log
+  const atacante     = listaDeIniciativa.find(c => c.id === _acertoAtacanteId);
   const nomeAtacante = atacante?.nome ?? "?";
-  const nomeAlvo     = alvo?.nome     ?? "?";
-  const sufixo = acertou !== null ? (acertou ? " — Acertou!" : " — Errou!") : "";
+  const alvos        = alvosSelecionadosAcerto();
+
+  alvosDisplay.innerHTML = "";
+  const logAlvos = [];
+
+  if (alvos.length === 0) {
+    alvosDisplay.innerHTML = `<p class="acerto-sem-alvo">Selecione ao menos um alvo para comparar com a CA.</p>`;
+  }
+
+  alvos.forEach(alvo => {
+    const ca      = obterCACriatura(alvo);
+    const acertou = critico ? true : falhaCritica ? false : (ca !== null ? total >= ca : null);
+
+    let badgeAlvo;
+    if (critico)                badgeAlvo = `<span class="acerto-badge acerto-badge--critico">Crítico!</span>`;
+    else if (falhaCritica)      badgeAlvo = `<span class="acerto-badge acerto-badge--falha">Falha!</span>`;
+    else if (acertou === true)  badgeAlvo = `<span class="acerto-badge acerto-badge--acertou">Acertou!</span>`;
+    else if (acertou === false) badgeAlvo = `<span class="acerto-badge acerto-badge--errou">Errou!</span>`;
+    else                        badgeAlvo = `<span class="acerto-badge">CA desconhecida</span>`;
+
+    const linha = document.createElement("div");
+    linha.className = "acerto-alvo-resultado";
+    linha.innerHTML = `<span class="acerto-alvo-nome">${alvo.nome}${ca !== null ? ` (CA ${ca})` : ""}</span>${badgeAlvo}`;
+    alvosDisplay.appendChild(linha);
+
+    logAlvos.push(`${alvo.nome}${acertou === true ? " — Acertou!" : acertou === false ? " — Errou!" : ""}`);
+  });
+
+  const sufixoAlvos = logAlvos.length ? ` contra ${logAlvos.join(", ")}` : "";
   const logTipo = critico ? "sucesso" : falhaCritica ? "falha" : "";
-  adicionarHistorico(`🎯 ${nomeAtacante} rolou acerto contra ${nomeAlvo}: ${total} ${formula}${sufixo}`, logTipo);
+  adicionarHistorico(`🎯 ${nomeAtacante} rolou acerto${sufixoAlvos}: ${total} ${formula}`, logTipo);
 }
 
 function irParaDano() {
-  const sel = document.getElementById("acerto-atacante");
-  _acertoAtacanteId = sel ? sel.value : null;
-  const alvoId = _acertoAlvoId;
+  const idsAlvos   = alvosSelecionadosAcerto().map(c => c.id);
+  const atacanteId = _acertoAtacanteId;
   fecharModalAcerto();
-  abrirModalDanoCura(alvoId, "dano", _acertoAtacanteId);
+  abrirModalDanoCura(idsAlvos, "dano", atacanteId);
 }
 
-function abrirModalDanoCura(id, tipo, atacantePreId = null) {
-  const criatura = listaDeIniciativa.find(c => c.id === id);
-  if (!criatura) return;
-
-  _modalDanoCuraId   = id;
-  _modalDanoCuraTipo = tipo;
+function abrirModalDanoCura(ids, tipo, atacantePreId = null) {
+  const idsArr = (Array.isArray(ids) ? ids : [ids]).filter(id => id !== null && id !== undefined);
   const isDano = tipo === "dano";
 
-  document.getElementById("modal-dano-titulo").textContent    = isDano ? `⚔️ Dano — ${criatura.nome}` : `💊 Cura — ${criatura.nome}`;
-  document.getElementById("modal-dano-hp-atual").textContent  = `HP atual: ${criatura.hpAtual} / ${criatura.hpMax}`;
+  if (!isDano && !listaDeIniciativa.find(c => c.id === idsArr[0])) return;
+
+  _modalDanoCuraIds  = idsArr;
+  _modalDanoCuraTipo = tipo;
+
   document.getElementById("modal-dano-resultado").textContent = "—";
   document.getElementById("modal-dano-resultado").className   = "modal-dano-valor";
   document.getElementById("modal-dano-formula-txt").textContent = "";
@@ -789,7 +895,26 @@ function abrirModalDanoCura(id, tipo, atacantePreId = null) {
   document.getElementById("btn-confirmar-dano").textContent   = isDano ? "⚔️ Aplicar Dano" : "💊 Aplicar Cura";
   document.getElementById("btn-confirmar-dano").className     = isDano ? "btn-confirmar btn-confirmar-dano" : "btn-confirmar btn-confirmar-cura";
 
-  // Seletor de atacante (só no dano)
+  const tituloEl  = document.getElementById("modal-dano-titulo");
+  const hpAtualEl = document.getElementById("modal-dano-hp-atual");
+  const alvosWrap = document.getElementById("modal-dano-alvos-wrap");
+
+  if (isDano) {
+    tituloEl.textContent    = "⚔️ Dano";
+    hpAtualEl.style.display = "none";
+    alvosWrap.style.display = "block";
+    // Alvo(s) já escolhidos na etapa de acerto vêm pré-selecionados; pode-se ajustar aqui
+    renderizarListaAlvos("modal-dano-alvos-lista", { preSelecionados: idsArr, mostrarCA: true });
+  } else {
+    const criatura = listaDeIniciativa.find(c => c.id === idsArr[0]);
+    tituloEl.textContent    = `💊 Cura — ${criatura.nome}`;
+    hpAtualEl.textContent   = `HP atual: ${criatura.hpAtual} / ${criatura.hpMax}`;
+    hpAtualEl.style.display = "block";
+    alvosWrap.style.display = "none";
+  }
+
+  // Seletor de atacante — por padrão o ativo do turno, mas pode ser trocado
+  // (ex.: o alvo tomou um ataque de oportunidade de outro combatente)
   const atacanteWrap = document.getElementById("modal-dano-atacante-wrap");
   if (isDano) {
     atacanteWrap.style.display = "block";
@@ -800,7 +925,6 @@ function abrirModalDanoCura(id, tipo, atacantePreId = null) {
       const opt = document.createElement("option");
       opt.value = c.id;
       opt.textContent = c.nome;
-      // Prioriza atacante vindo do modal de acerto, depois o ativo do turno
       const preSelecionar = atacantePreId ? c.id == atacantePreId : (ativo && c.id === ativo.id);
       if (preSelecionar) opt.selected = true;
       sel.appendChild(opt);
@@ -815,9 +939,19 @@ function abrirModalDanoCura(id, tipo, atacantePreId = null) {
   previa.innerHTML = "";
 
   const btnMortoModal = document.getElementById("btn-morto-modal");
-  btnMortoModal.style.display = isDano ? "block" : "none";
-  btnMortoModal.textContent   = criatura.morto ? "💚 Reviver" : "☠️ Marcar como Morto";
-  btnMortoModal.className     = criatura.morto ? "btn-morto-modal btn-morto-modal--reviver" : "btn-morto-modal";
+  if (isDano) {
+    const unico = idsArr.length === 1 ? listaDeIniciativa.find(c => c.id === idsArr[0]) : null;
+    btnMortoModal.style.display = unico ? "block" : "none";
+    if (unico) {
+      btnMortoModal.textContent = unico.morto ? "💚 Reviver" : "☠️ Marcar como Morto";
+      btnMortoModal.className   = unico.morto ? "btn-morto-modal btn-morto-modal--reviver" : "btn-morto-modal";
+    }
+  } else {
+    const criatura = listaDeIniciativa.find(c => c.id === idsArr[0]);
+    btnMortoModal.style.display = "block";
+    btnMortoModal.textContent   = criatura.morto ? "💚 Reviver" : "☠️ Marcar como Morto";
+    btnMortoModal.className     = criatura.morto ? "btn-morto-modal btn-morto-modal--reviver" : "btn-morto-modal";
+  }
 
   const aviso = document.getElementById("modal-dano-aviso");
   if (aviso) aviso.style.display = isDano ? "none" : "block";
@@ -828,27 +962,40 @@ function abrirModalDanoCura(id, tipo, atacantePreId = null) {
 
 function fecharModalDanoCura() {
   document.getElementById("modal-dano-cura").classList.add("oculto");
-  _modalDanoCuraId   = null;
+  _modalDanoCuraIds  = [];
   _modalDanoCuraTipo = null;
 }
 
+function alvosSelecionadosDano() {
+  return [...document.querySelectorAll("#modal-dano-alvos-lista .area-alvo-cb:checked")]
+    .map(cb => listaDeIniciativa.find(c => c.id == cb.value))
+    .filter(Boolean);
+}
+
 function atualizarPrevia() {
-  const valor    = parseInt(document.getElementById("modal-dano-manual").value);
-  const previa   = document.getElementById("modal-dano-previa");
-  const criatura = listaDeIniciativa.find(c => c.id === _modalDanoCuraId);
-  if (!criatura || isNaN(valor) || valor < 0) { previa.style.display = "none"; return; }
+  const valor  = parseInt(document.getElementById("modal-dano-manual").value);
+  const previa = document.getElementById("modal-dano-previa");
+  if (isNaN(valor) || valor < 0) { previa.style.display = "none"; return; }
 
   const isDano = _modalDanoCuraTipo === "dano";
 
   if (isDano) {
-    const sel       = document.getElementById("modal-dano-atacante");
+    const alvos = alvosSelecionadosDano();
+    if (alvos.length === 0) { previa.style.display = "none"; return; }
+
+    const sel        = document.getElementById("modal-dano-atacante");
     const atacanteId = sel ? sel.value : null;
-    const atacante  = atacanteId ? listaDeIniciativa.find(c => c.id == atacanteId) : null;
-    const hpFinal   = Math.max(0, criatura.hpAtual - valor);
-    const prefixo   = atacante ? `${atacante.nome} → ${criatura.nome}` : criatura.nome;
-    previa.innerHTML = `<span class="previa-ataque">${prefixo}</span><span class="previa-dano">-${valor}</span><span class="previa-hp">${criatura.hpAtual} → ${hpFinal} HP</span>`;
+    const atacante   = atacanteId ? listaDeIniciativa.find(c => c.id == atacanteId) : null;
+
+    previa.innerHTML = alvos.map(criatura => {
+      const hpFinal = Math.max(0, criatura.hpAtual - valor);
+      const prefixo = atacante ? `${atacante.nome} → ${criatura.nome}` : criatura.nome;
+      return `<div class="previa-dano-linha"><span class="previa-ataque">${prefixo}</span><span class="previa-dano">-${valor}</span><span class="previa-hp">${criatura.hpAtual} → ${hpFinal} HP</span></div>`;
+    }).join("");
     previa.className = "modal-dano-previa modal-dano-previa--dano";
   } else {
+    const criatura = listaDeIniciativa.find(c => c.id === _modalDanoCuraIds[0]);
+    if (!criatura) { previa.style.display = "none"; return; }
     const hpFinal = Math.min(criatura.hpMax, criatura.hpAtual + valor);
     previa.innerHTML = `<span class="previa-ataque">${criatura.nome}</span><span class="previa-cura">+${valor}</span><span class="previa-hp">${criatura.hpAtual} → ${hpFinal} HP</span>`;
     previa.className = "modal-dano-previa modal-dano-previa--cura";
@@ -885,26 +1032,32 @@ function confirmarDanoCura() {
   const valor = parseInt(document.getElementById("modal-dano-manual").value);
   if (isNaN(valor) || valor < 0) { document.getElementById("modal-dano-manual").focus(); return; }
 
-  const criatura = listaDeIniciativa.find(c => c.id === _modalDanoCuraId);
-  if (!criatura) return;
+  const isDano = _modalDanoCuraTipo === "dano";
 
-  const hpAntes = criatura.hpAtual;
+  if (isDano) {
+    const alvos = alvosSelecionadosDano();
+    if (alvos.length === 0) return;
 
-  if (_modalDanoCuraTipo === "dano") {
-    // Pega atacante selecionado
-    const sel = document.getElementById("modal-dano-atacante");
-    const atacanteId = sel ? sel.value : null;
-    const atacante   = atacanteId ? listaDeIniciativa.find(c => c.id == atacanteId) : null;
+    const sel         = document.getElementById("modal-dano-atacante");
+    const atacanteId  = sel ? sel.value : null;
+    const atacante    = atacanteId ? listaDeIniciativa.find(c => c.id == atacanteId) : null;
     const nomeAtacante = atacante ? atacante.nome : null;
 
-    criatura.hpAtual = Math.max(0, criatura.hpAtual - valor);
+    alvos.forEach(criatura => {
+      const hpAntes = criatura.hpAtual;
+      criatura.hpAtual = Math.max(0, criatura.hpAtual - valor);
 
-    const logTxt = nomeAtacante
-      ? `⚔️ ${nomeAtacante} causou ${valor} de dano em ${criatura.nome}! (${hpAntes} → ${criatura.hpAtual} HP)`
-      : `⚔️ ${criatura.nome} recebeu ${valor} de dano (${hpAntes} → ${criatura.hpAtual} HP)`;
-    adicionarHistorico(logTxt, "falha");
-    if (criatura.hpAtual === 0 && !criatura.morto) processarHPZero(criatura);
+      const logTxt = nomeAtacante
+        ? `⚔️ ${nomeAtacante} causou ${valor} de dano em ${criatura.nome}! (${hpAntes} → ${criatura.hpAtual} HP)`
+        : `⚔️ ${criatura.nome} recebeu ${valor} de dano (${hpAntes} → ${criatura.hpAtual} HP)`;
+      adicionarHistorico(logTxt, "falha");
+      if (criatura.hpAtual === 0 && !criatura.morto) processarHPZero(criatura);
+    });
   } else {
+    const criatura = listaDeIniciativa.find(c => c.id === _modalDanoCuraIds[0]);
+    if (!criatura) return;
+
+    const hpAntes = criatura.hpAtual;
     criatura.hpAtual = Math.min(criatura.hpMax, criatura.hpAtual + valor);
     adicionarHistorico(`💊 ${criatura.nome} recuperou ${valor} de HP (${hpAntes} → ${criatura.hpAtual} HP)`, "sucesso");
     // Se estava nocauteado e recuperou HP, remove nocaute
@@ -919,7 +1072,7 @@ function confirmarDanoCura() {
 }
 
 function mortoViaModal() {
-  const id = _modalDanoCuraId;
+  const id = _modalDanoCuraIds[0];
   fecharModalDanoCura();
   marcarMorto(id);
 }
@@ -1039,7 +1192,36 @@ function abrirTurnoAcaoAtaque() {
   const atual = listaDeIniciativa[turnoAtivo];
   if (!atual) return;
   if (config.etapaAcerto) abrirModalAcerto(atual.id);
-  else abrirModalDanoCura(atual.id, "dano");
+  else abrirModalDanoCura([], "dano", atual.id);
+}
+
+// Popover de condições do painel de turno — fica aberto entre seleções para
+// permitir marcar várias condições seguidas (só fecha ao clicar fora dele).
+let _popoverCondicaoTurno = null;
+
+/** (Re)constrói as opções do popover, refletindo quais condições já estão ativas */
+function renderizarOpcoesPopoverCondicao(popover, criatura) {
+  popover.innerHTML = "";
+  CONDICOES.forEach(cond => {
+    const ativa = (criatura.condicoes || []).some(c => c.id === cond.id);
+    const opcao = document.createElement("button");
+    opcao.className = "condicao-opcao" + (ativa ? " condicao-opcao--ativa" : "");
+    opcao.title     = cond.descricao;
+    opcao.innerHTML = `<span class="cond-emoji">${cond.emoji}</span><span class="cond-label">${cond.label}</span>`;
+    opcao.addEventListener("click", (e) => {
+      e.stopPropagation();
+      toggleCondicao(criatura.id, cond.id);
+      // Se a condição já estava ativa, ela é removida na hora (sem modal) — só
+      // atualiza a lista. Se abriu o modal de duração, escondemos o popover até
+      // ele ser confirmado/fechado (veja fecharModalCondicaoDuracao).
+      if (document.getElementById("modal-condicao-duracao").classList.contains("oculto")) {
+        renderizarOpcoesPopoverCondicao(popover, criatura);
+      } else {
+        popover.style.display = "none";
+      }
+    });
+    popover.appendChild(opcao);
+  });
 }
 
 function abrirTurnoAcaoCondicao() {
@@ -1057,21 +1239,10 @@ function abrirTurnoAcaoCondicao() {
   popover.style.position = "fixed";
   popover.style.zIndex = "1000";
 
-  CONDICOES.forEach(cond => {
-    const ativa = (atual.condicoes || []).some(c => c.id === cond.id);
-    const opcao = document.createElement("button");
-    opcao.className = "condicao-opcao" + (ativa ? " condicao-opcao--ativa" : "");
-    opcao.title     = cond.descricao;
-    opcao.innerHTML = `<span class="cond-emoji">${cond.emoji}</span><span class="cond-label">${cond.label}</span>`;
-    opcao.addEventListener("click", (e) => {
-      e.stopPropagation();
-      popover.remove();
-      toggleCondicao(atual.id, cond.id);
-    });
-    popover.appendChild(opcao);
-  });
+  renderizarOpcoesPopoverCondicao(popover, atual);
 
   document.body.appendChild(popover);
+  _popoverCondicaoTurno = popover;
 
   // Posiciona logo acima do botão
   const btnCondicao = document.getElementById("btn-turno-condicao");
@@ -1079,10 +1250,13 @@ function abrirTurnoAcaoCondicao() {
   popover.style.top  = (rect.top - popover.offsetHeight - 6) + "px";
   popover.style.left = rect.left + "px";
 
-  // Fecha ao clicar fora
+  // Fecha ao clicar fora (ignorando cliques dentro do modal de duração,
+  // que faz parte do mesmo fluxo de seleção de condições)
   const fecharPopover = (e) => {
-    if (!popover.contains(e.target) && e.target !== btnCondicao) {
+    const dentroDoModalDuracao = e.target.closest("#modal-condicao-duracao");
+    if (!popover.contains(e.target) && e.target !== btnCondicao && !dentroDoModalDuracao) {
       popover.remove();
+      if (_popoverCondicaoTurno === popover) _popoverCondicaoTurno = null;
       document.removeEventListener("click", fecharPopover);
     }
   };
@@ -1092,7 +1266,7 @@ function abrirTurnoAcaoCondicao() {
 function abrirTurnoAcaoCura() {
   const atual = listaDeIniciativa[turnoAtivo];
   if (!atual) return;
-  abrirModalDanoCura(atual.id, "cura");
+  abrirModalDanoCura([atual.id], "cura");
 }
 
 function abrirTurnoAcaoMorto() {
@@ -1104,21 +1278,28 @@ function abrirTurnoAcaoMorto() {
 function atualizarPainelTurno() {
   const numEl   = document.getElementById("turno-rodada-num");
   const combateRodadaEl = document.getElementById("combate-rodada-num");
+  const linhaEl = document.getElementById("turno-ativo-linha");
   const cardEl  = document.getElementById("turno-ativo-card");
+  const condCardEl = document.getElementById("turno-ativo-condicoes-card");
   const vazioEl = document.getElementById("turno-vazio-msg");
+  const acoesEl = document.getElementById("turno-ativo-acoes");
 
   if (numEl) numEl.textContent = rodadaAtual;
   if (combateRodadaEl) combateRodadaEl.textContent = rodadaAtual;
 
   if (listaDeIniciativa.length === 0) {
-    if (cardEl)  { cardEl.classList.add("oculto"); cardEl.innerHTML = ""; }
+    if (linhaEl)    linhaEl.classList.add("oculto");
+    if (cardEl)     cardEl.innerHTML = "";
+    if (condCardEl) condCardEl.innerHTML = "";
     if (vazioEl) vazioEl.style.display = "block";
+    if (acoesEl) { acoesEl.classList.add("oculto"); acoesEl.innerHTML = ""; }
     renderizarCondicoesAtivas();
     return;
   }
 
-  if (cardEl)  cardEl.classList.remove("oculto");
+  if (linhaEl) linhaEl.classList.remove("oculto");
   if (vazioEl) vazioEl.style.display = "none";
+  if (acoesEl) acoesEl.classList.remove("oculto");
 
   const atual = listaDeIniciativa[turnoAtivo];
   if (!atual) return;
@@ -1134,18 +1315,7 @@ function atualizarPainelTurno() {
     return cor?.hex ?? null;
   })();
 
-  const caValor = (() => {
-    if (atual.idHeroi) {
-      const h = partyHerois.find(h => h.id === atual.idHeroi);
-      return h?.ca ?? null;
-    }
-    if (atual.idMonstroCustom) {
-      const mc = monstrosCustom.find(m => m.id === atual.idMonstroCustom);
-      if (mc) return mc.ca ?? null;
-    }
-    const m = coletaneaMonstros.find(m => m.nome === atual.nomeBase);
-    return m?.ca ?? null;
-  })();
+  const caValor = obterCACriatura(atual);
 
   // Estilização da borda e classes de estado
   cardEl.className = "turno-ativo-card item-iniciativa item-iniciativa--ativo"
@@ -1248,24 +1418,45 @@ function atualizarPainelTurno() {
   barraFill.style.background = corHP;
   barraWrap.appendChild(barraFill);
 
-  const condLinha = document.createElement("div");
-  condLinha.className = "turno-ativo-condicoes";
-  const condTexto = document.createElement("span");
-  condTexto.className = "turno-ativo-cond-texto";
-  const condicoesAtivas = (atual.condicoes || []).map(condObj => {
-    const cond = CONDICOES.find(c => c.id === condObj.id);
-    return cond ? `${cond.emoji} ${cond.label}` : null;
-  }).filter(Boolean);
-  condTexto.textContent = `Condições: ${condicoesAtivas.length ? condicoesAtivas.join(", ") : "Nenhuma"}`;
-  condLinha.appendChild(condTexto);
-
   stats.appendChild(hpLinha);
   stats.appendChild(barraWrap);
-  stats.appendChild(condLinha);
 
-  // ── 3. Ações do combatente ativo no painel de turno
-  const divAcoesTurno = document.createElement("div");
-  divAcoesTurno.className = "turno-ativo-acoes";
+  // ── 2.5. Card de condições, ao lado do card principal (mesmo estilo do painel de combate)
+  if (condCardEl) {
+    condCardEl.innerHTML = "";
+
+    const tituloCond = document.createElement("div");
+    tituloCond.className = "turno-cond-card-titulo";
+    tituloCond.textContent = "🩺 Condições";
+    condCardEl.appendChild(tituloCond);
+
+    const condicoesDaCriatura = atual.condicoes || [];
+    if (condicoesDaCriatura.length === 0) {
+      const vazio = document.createElement("p");
+      vazio.className = "efeitos-vazio";
+      vazio.textContent = "Nenhuma condição ativa.";
+      condCardEl.appendChild(vazio);
+    } else {
+      const tagsWrap = document.createElement("div");
+      tagsWrap.className = "turno-cond-card-tags";
+      condicoesDaCriatura.forEach(condObj => {
+        const cond = CONDICOES.find(c => c.id === condObj.id);
+        if (!cond) return;
+        const tag = document.createElement("span");
+        tag.className = "item-ini-cond-tag";
+        const duracaoTxt = condObj.rodadas !== null
+          ? ` (${condObj.rodadas} turno${condObj.rodadas > 1 ? "s" : ""})`
+          : "";
+        tag.textContent = `${cond.emoji} ${cond.label}${duracaoTxt}`;
+        tagsWrap.appendChild(tag);
+      });
+      condCardEl.appendChild(tagsWrap);
+    }
+  }
+
+  // ── 3. Ações do combatente ativo no painel de turno (renderizadas fora do card)
+  const divAcoesTurno = acoesEl;
+  if (divAcoesTurno) divAcoesTurno.innerHTML = "";
 
   const btnAtaque = document.createElement("button");
   btnAtaque.id = "btn-turno-ataque";
@@ -1295,7 +1486,6 @@ function atualizarPainelTurno() {
   // Montagem final do card de turno ativo
   cardEl.appendChild(cabecalho);
   cardEl.appendChild(stats);
-  cardEl.appendChild(divAcoesTurno);
 
   renderizarCondicoesAtivas();
 }
@@ -1364,6 +1554,20 @@ function calcularCorHP(hpAtual, hpMax) {
   return "#e63946";                  // vermelho
 }
 
+/** Resolve a CA de um combatente da iniciativa (herói, monstro custom ou da coletânea) */
+function obterCACriatura(criatura) {
+  if (criatura.idHeroi) {
+    const h = partyHerois.find(h => h.id === criatura.idHeroi);
+    return h?.ca ?? null;
+  }
+  if (criatura.idMonstroCustom) {
+    const mc = monstrosCustom.find(m => m.id === criatura.idMonstroCustom);
+    if (mc) return mc.ca ?? null;
+  }
+  const m = coletaneaMonstros.find(m => m.nome === criatura.nomeBase);
+  return m?.ca ?? null;
+}
+
 function atualizarIniciativa() {
   listaDeIniciativa.sort((a, b) => b.valor - a.valor);
   const container = document.getElementById("lista-iniciativa-conteudo");
@@ -1406,18 +1610,7 @@ function atualizarIniciativa() {
       item.style.boxShadow     = "0 0 0 1px #8b1a1a";
     }
 
-    const caValor = (() => {
-      if (personagem.idHeroi) {
-        const h = partyHerois.find(h => h.id === personagem.idHeroi);
-        return h?.ca ?? null;
-      }
-      if (personagem.idMonstroCustom) {
-        const mc = monstrosCustom.find(m => m.id === personagem.idMonstroCustom);
-        if (mc) return mc.ca ?? null;
-      }
-      const m = coletaneaMonstros.find(m => m.nome === personagem.nomeBase);
-      return m?.ca ?? null;
-    })();
+    const caValor = obterCACriatura(personagem);
 
     const topo = document.createElement("div");
     topo.className = "item-ini-topo";
@@ -1476,16 +1669,31 @@ function atualizarIniciativa() {
     corpo.appendChild(avatar);
     corpo.appendChild(dados);
 
+    // Card resumido: só o ícone de cada condição (nome completo no title), com
+    // um "+N" para o excedente — evita a barra de rolagem quando há muitas condições
+    const MAX_CONDICOES_VISIVEIS = 8;
     const condTags = document.createElement("div");
     condTags.className = "item-ini-condicoes";
-    condicoes.forEach(condObj => {
-      const cond = CONDICOES.find(c => c.id === condObj.id);
-      if (!cond) return;
+    const condsValidas = condicoes
+      .map(condObj => CONDICOES.find(c => c.id === condObj.id))
+      .filter(Boolean);
+
+    condsValidas.slice(0, MAX_CONDICOES_VISIVEIS).forEach(cond => {
       const tag = document.createElement("span");
-      tag.className = "item-ini-cond-tag";
-      tag.textContent = `${cond.emoji} ${cond.label}`;
+      tag.className = "item-ini-cond-tag item-ini-cond-tag--icone";
+      tag.textContent = cond.emoji;
+      tag.title = cond.label;
       condTags.appendChild(tag);
     });
+
+    const condsRestantes = condsValidas.slice(MAX_CONDICOES_VISIVEIS);
+    if (condsRestantes.length > 0) {
+      const mais = document.createElement("span");
+      mais.className = "item-ini-cond-tag item-ini-cond-tag--mais";
+      mais.textContent = `+${condsRestantes.length}`;
+      mais.title = condsRestantes.map(c => c.label).join(", ");
+      condTags.appendChild(mais);
+    }
 
     item.appendChild(topo);
     item.appendChild(corpo);
@@ -1755,7 +1963,7 @@ function rolarAcaoRapida(nomeAcao, emoji) {
   document.querySelector("#resultado-dado .valor").textContent = total;
 
   const formulaCurta = `1d20${modificador ? (modificador > 0 ? " + " + modificador : " - " + Math.abs(modificador)) : ""}`;
-  registrarUltimaRolagem(formulaCurta, total);
+  registrarUltimaRolagem(formulaCurta, total, nomeAcao);
 
   const textoBase = `1d20: [${rolagem}] + ${modificador} = ${total}`;
   if (rolagem === 20) adicionarHistorico(`${emoji} ${nomeAcao}: SUCESSO CRÍTICO! ${textoBase}`, "sucesso");
@@ -1830,7 +2038,7 @@ function rolarEvento() {
   const formula    = `(${qtd}d${lados}: [${rolagens.join(", ")}] ${sinal}${mod})`;
 
   const formulaCurta = `${qtd}d${lados}${mod ? (mod > 0 ? " + " + mod : " - " + Math.abs(mod)) : ""}`;
-  registrarUltimaRolagem(formulaCurta, total);
+  registrarUltimaRolagem(formulaCurta, total, `Evento: ${personagem}${acao ? " " + acao : ""}`);
 
   adicionarHistorico(`📜 ${personagem}${acao ? " " + acao : ""} e rolou ${total} ${formula}`);
 }
@@ -1863,8 +2071,8 @@ function rolarDado(lados) {
   }
 }
 
-function registrarUltimaRolagem(formula, total) {
-  ultimasRolagens.unshift({ formula, total, hora: horaAgora() });
+function registrarUltimaRolagem(formula, total, label = "") {
+  ultimasRolagens.unshift({ formula, total, hora: horaAgora(), label });
   ultimasRolagens = ultimasRolagens.slice(0, 3);
   localStorage.setItem("ultimasRolagensRPG", JSON.stringify(ultimasRolagens));
   renderizarUltimasRolagens();
@@ -1884,7 +2092,7 @@ function renderizarUltimasRolagens() {
     const item = document.createElement("div");
     item.className = "ultima-rolagem-item";
     item.innerHTML = `
-      <span class="ultima-rolagem-formula">${r.formula}</span>
+      <span class="ultima-rolagem-formula">${r.label ? `${r.label} (${r.formula})` : r.formula}</span>
       <span class="ultima-rolagem-total">Resultado: ${r.total}</span>
       <span class="ultima-rolagem-hora">${r.hora || ""}</span>
     `;
@@ -2117,6 +2325,9 @@ window.onload = () => {
   document.getElementById("btn-rolar-dano-modal").addEventListener("click", rolarDadoModal);
   document.getElementById("modal-dano-manual").addEventListener("input", atualizarPrevia);
   document.getElementById("modal-dano-atacante").addEventListener("change", atualizarPrevia);
+  document.getElementById("modal-dano-alvos-lista").addEventListener("change", atualizarPrevia);
+  document.getElementById("btn-dano-alvo-todos").addEventListener("click", () => { selecionarTodosAlvos("modal-dano-alvos-lista", true); atualizarPrevia(); });
+  document.getElementById("btn-dano-alvo-nenhum").addEventListener("click", () => { selecionarTodosAlvos("modal-dano-alvos-lista", false); atualizarPrevia(); });
   window.addEventListener("click", (e) => { if (e.target === document.getElementById("modal-dano-cura")) fecharModalDanoCura(); });
   document.getElementById("modal-dano-cura").addEventListener("keydown", (e) => { if (e.key === "Enter") confirmarDanoCura(); });
 
@@ -2124,9 +2335,17 @@ window.onload = () => {
   document.getElementById("fechar-area").addEventListener("click", fecharModalArea);
   document.getElementById("btn-rolar-area").addEventListener("click", rolarDadoArea);
   document.getElementById("btn-confirmar-area").addEventListener("click", confirmarDanoArea);
-  document.getElementById("btn-area-todos").addEventListener("click", () => selecionarTodosArea(true));
-  document.getElementById("btn-area-nenhum").addEventListener("click", () => selecionarTodosArea(false));
+  document.getElementById("btn-area-todos").addEventListener("click", () => selecionarTodosAlvos("area-alvos-lista", true));
+  document.getElementById("btn-area-nenhum").addEventListener("click", () => selecionarTodosAlvos("area-alvos-lista", false));
   window.addEventListener("click", (e) => { if (e.target === document.getElementById("modal-area")) fecharModalArea(); });
+
+  document.getElementById("btn-abrir-cura-area").addEventListener("click", abrirModalCuraArea);
+  document.getElementById("fechar-cura-area").addEventListener("click", fecharModalCuraArea);
+  document.getElementById("btn-rolar-cura-area").addEventListener("click", rolarDadoCuraArea);
+  document.getElementById("btn-confirmar-cura-area").addEventListener("click", confirmarCuraArea);
+  document.getElementById("btn-cura-area-todos").addEventListener("click", () => selecionarTodosAlvos("cura-area-alvos-lista", true));
+  document.getElementById("btn-cura-area-nenhum").addEventListener("click", () => selecionarTodosAlvos("cura-area-alvos-lista", false));
+  window.addEventListener("click", (e) => { if (e.target === document.getElementById("modal-cura-area")) fecharModalCuraArea(); });
 
   document.getElementById("fechar-condicao-duracao").addEventListener("click", fecharModalCondicaoDuracao);
   document.getElementById("btn-confirmar-condicao").addEventListener("click", confirmarCondicao);
@@ -2137,6 +2356,8 @@ window.onload = () => {
   document.getElementById("btn-rolar-acerto").addEventListener("click", rolarAcerto);
   document.getElementById("btn-acerto-aplicar-dano").addEventListener("click", irParaDano);
   document.getElementById("btn-acerto-pular").addEventListener("click", irParaDano);
+  document.getElementById("btn-acerto-alvo-todos").addEventListener("click", () => selecionarTodosAlvos("acerto-alvos-lista", true));
+  document.getElementById("btn-acerto-alvo-nenhum").addEventListener("click", () => selecionarTodosAlvos("acerto-alvos-lista", false));
   window.addEventListener("click", (e) => { if (e.target === document.getElementById("modal-acerto")) fecharModalAcerto(); });
 
   document.getElementById("btn-turno-anterior").addEventListener("click", turnoAnterior);
@@ -2165,15 +2386,6 @@ window.onload = () => {
   if (btnTurnoAtaque) btnTurnoAtaque.addEventListener("click", abrirTurnoAcaoAtaque);
   if (btnTurnoCondicao) btnTurnoCondicao.addEventListener("click", abrirTurnoAcaoCondicao);
   if (btnTurnoCura) btnTurnoCura.addEventListener("click", abrirTurnoAcaoCura);
-
-  document.addEventListener("click", (evento) => {
-    const cliqueNoBotao = evento.target.closest("#btn-turno-condicao");
-    const cliqueNoPopover = evento.target.closest(".condicao-popover");
-
-    if (!cliqueNoBotao && !cliqueNoPopover) {
-      document.querySelectorAll(".condicao-popover").forEach(p => p.remove());
-    }
-  });
 
   atualizarIniciativa();
   renderizarStatusGrupo();

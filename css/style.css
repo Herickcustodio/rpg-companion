@@ -247,6 +247,12 @@ body {
   line-height: 1.2;
 }
 
+.painel-cabecalho-botoes {
+  display: flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
 .painel-cabecalho--status {
   display: flex;
   align-items: flex-end;
@@ -718,11 +724,16 @@ body.tema-light .turno-ativo-card {
   margin-bottom: 8px;
 }
 
-.modal-dano-atacante-wrap label {
+.modal-dano-atacante-wrap label,
+.modal-dano-alvos-wrap label {
   font-size: 13px;
   color: var(--text-muted);
   display: block;
   margin-bottom: 4px;
+}
+
+.modal-dano-alvos-wrap {
+  margin-bottom: 8px;
 }
 
 .modal-dano-select {
@@ -757,6 +768,15 @@ body.tema-light .turno-ativo-card {
 .modal-dano-previa--dano {
   background: #2a0a0a;
   border: 1px solid #8b1a1a;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+}
+
+.previa-dano-linha {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .modal-dano-previa--cura {
@@ -894,6 +914,12 @@ body.tema-light .previa-cura { color: #16a34a; }
   background: #27ae60 !important;
 }
 
+#btn-confirmar-area {
+  display: block;
+  width: fit-content;
+  margin: 8px auto 0;
+}
+
 .btn-morto-modal {
   width: 100%;
   padding: 8px;
@@ -999,7 +1025,7 @@ body.tema-light .previa-cura { color: #16a34a; }
   margin-top: auto;
   flex: 1;
   min-height: 0;
-  overflow-y: auto;
+  overflow: hidden;
 }
 
 .item-ini-cond-tag {
@@ -1013,6 +1039,20 @@ body.tema-light .previa-cura { color: #16a34a; }
   font-size: 9px;
   color: var(--yellow);
   line-height: 1.2;
+  cursor: default;
+}
+
+/* Chip compacto (só o emoji, com o nome no title) usado no card resumido do combate */
+.item-ini-cond-tag--icone {
+  padding: 2px 4px;
+  font-size: 11px;
+}
+
+.item-ini-cond-tag--mais {
+  background: var(--bg-card2);
+  border-color: var(--text-muted);
+  color: var(--text-secondary);
+  font-weight: 700;
 }
 
 .item-iniciativa-valor {
@@ -1240,6 +1280,17 @@ body.tema-light .previa-cura { color: #16a34a; }
   text-align: center;
 }
 
+/* Linha com o card do combatente ativo + card de condições ao lado.
+   Ocupa só o espaço que sobrar na coluna — os botões de ação e de turno
+   ficam fixos abaixo dela em vez de serem empurrados para baixo. */
+.turno-ativo-linha {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  flex: 1;
+  min-height: 0;
+}
+
 /* Card do combatente ativo
    Reaproveita as classes .item-iniciativa / .item-iniciativa--ativo (JS) só para herdar
    a lógica de cor de estado (ativo/morto/nocauteado) — o tamanho fixo do card de combate
@@ -1249,20 +1300,57 @@ body.tema-light .previa-cura { color: #16a34a; }
   border: 1px solid rgba(255,255,255,0.08);
   border-left: 4px solid #5aabff;
   border-radius: 8px;
-  padding: 8px 10px;
+  padding: 6px 8px;
   margin: 0;
   box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
-  flex-shrink: 0;
+  flex: 1.3;
+  min-width: 0;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .turno-ativo-card.item-iniciativa {
   position: static;
-  width: 100%;
+  width: auto;
   min-width: 0;
   max-width: none;
   height: auto;
   min-height: 0;
   margin: 0;
+}
+
+/* Card de condições, ao lado do combatente ativo */
+.turno-ativo-condicoes-card {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  background: var(--bg-card);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-left: 4px solid var(--yellow);
+  border-radius: 8px;
+  padding: 6px 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.turno-cond-card-titulo {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.turno-cond-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  gap: 4px;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .turno-ativo-cabecalho {
@@ -1279,16 +1367,16 @@ body.tema-light .previa-cura { color: #16a34a; }
 }
 
 .turno-ativo-avatar {
-  width: 38px;
-  height: 38px;
-  border-radius: 8px;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
   border: 1px solid rgba(255,255,255,0.14);
   background: rgba(255,255,255,0.04);
   color: var(--text-muted);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 15px;
+  font-size: 12px;
   font-weight: bold;
   flex-shrink: 0;
 }
@@ -1309,20 +1397,20 @@ body.tema-light .previa-cura { color: #16a34a; }
 }
 
 .turno-ativo-badge {
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 700;
-  letter-spacing: 0.8px;
+  letter-spacing: 0.6px;
   background: rgba(90, 171, 255, 0.12);
   color: #8ec2ff;
   border: 1px solid rgba(90, 171, 255, 0.4);
   border-radius: 4px;
-  padding: 2px 6px;
+  padding: 1px 5px;
   width: fit-content;
 }
 
 .turno-ativo-nome {
   font-family: "Cinzel", Georgia, serif;
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 700;
   color: #e7edf7;
   line-height: 1.2;
@@ -1378,26 +1466,13 @@ body.tema-light .previa-cura { color: #16a34a; }
   height: 6px;
 }
 
-.turno-ativo-condicoes {
-  width: 100%;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  margin-top: 2px;
-}
-
-.turno-ativo-cond-texto {
-  font-size: 11px;
-  color: var(--text-secondary);
-  line-height: 1.4;
-}
-
 /* Botões de ação no painel de turno */
 .turno-ativo-acoes {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 5px;
   margin-top: 6px;
+  flex-shrink: 0;
 }
 
 .btn-turno-acao {
@@ -1464,7 +1539,7 @@ body.tema-light .previa-cura { color: #16a34a; }
   display: flex;
   gap: 8px;
   margin: 0;
-  margin-top: auto;
+  flex-shrink: 0;
 }
 
 .btn-turno--proximo {
@@ -2031,6 +2106,7 @@ body.tema-light .previa-cura { color: #16a34a; }
    ========================================================================== */
 #log-historico {
   overflow-y: auto;
+  overflow-x: hidden;
   flex: 1;
   padding: 0 4px;
 }
@@ -2060,6 +2136,8 @@ body.tema-light .previa-cura { color: #16a34a; }
   flex: 1;
   min-width: 0;
   white-space: pre-line;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .log-item-hora {
@@ -2678,6 +2756,17 @@ body.tema-light .log-item.sucesso { color: #16a34a; }
   color: #fff;
 }
 
+.btn-area-cab--cura {
+  background: #1a3a1a;
+  color: #88dd88;
+  border-color: #2a6a2a;
+}
+
+.btn-area-cab--cura:hover {
+  background: #2a6a2a;
+  color: #fff;
+}
+
 /* Lista de alvos */
 .area-alvos-controles {
   display: flex;
@@ -2708,11 +2797,13 @@ body.tema-light .log-item.sucesso { color: #16a34a; }
   gap: 5px;
   max-height: 200px;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 2px;
 }
 
 .area-alvo-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr);
   align-items: center;
   gap: 10px;
   cursor: pointer;
@@ -2727,15 +2818,12 @@ body.tema-light .log-item.sucesso { color: #16a34a; }
   width: 16px;
   height: 16px;
   cursor: pointer;
-  flex-shrink: 0;
   accent-color: #e63946;
 }
 
 .area-alvo-info {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex: 1;
+  display: block;
+  min-width: 0;
   background: var(--bg-card);
   border: 1px solid var(--border-light);
   border-left: 3px solid #444;
@@ -2745,15 +2833,19 @@ body.tema-light .log-item.sucesso { color: #16a34a; }
 }
 
 .area-alvo-nome {
+  display: block;
   font-family: "Cinzel", Georgia, serif;
   font-size: 13px;
   color: var(--text-primary);
   font-weight: bold;
+  word-break: break-word;
 }
 
 .area-alvo-hp {
+  display: block;
   font-size: 11px;
   color: #ff6b6b;
+  word-break: break-word;
 }
 
 .area-alvo-morto .area-alvo-info {
@@ -2991,7 +3083,7 @@ body.tema-light .log-item.sucesso { color: #16a34a; }
 /* ==========================================================================
    MODAL DE ACERTO
    ========================================================================== */
-.acerto-ca-ref {
+.acerto-atacante-info {
   background: var(--bg-card2);
   border: 1px solid var(--border-input);
   border-left: 3px solid #5aabff;
@@ -3002,9 +3094,43 @@ body.tema-light .log-item.sucesso { color: #16a34a; }
   margin-bottom: 4px;
 }
 
-.acerto-ca-ref strong { color: #5aabff; font-size: 15px; }
+.acerto-atacante-info strong { color: #5aabff; font-size: 15px; }
 
 .acerto-resultado-wrap { margin: 4px 0; }
+
+.acerto-resultado-alvos {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.acerto-alvo-resultado {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  background: var(--bg-card2);
+  border: 1px solid var(--border-light);
+  border-radius: 5px;
+  padding: 6px 10px;
+}
+
+.acerto-alvo-resultado .acerto-badge { margin-top: 0; padding: 3px 10px; font-size: 12px; }
+
+.acerto-alvo-nome {
+  font-family: "Cinzel", Georgia, serif;
+  font-size: 13px;
+  color: var(--text-primary);
+  font-weight: bold;
+}
+
+.acerto-sem-alvo {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-style: italic;
+  margin: 4px 0 0;
+}
 
 .acerto-resultado-display {
   display: flex;

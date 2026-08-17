@@ -227,10 +227,14 @@
         <h2 id="modal-acerto-titulo">🎯 Rolagem de Acerto</h2>
 
         <div class="form-heroi">
-          <label for="acerto-atacante">Atacante</label>
-          <select id="acerto-atacante" class="modal-dano-select"></select>
+          <div class="acerto-atacante-info" id="acerto-atacante-info"></div>
 
-          <div class="acerto-ca-ref" id="acerto-ca-ref"></div>
+          <label>Alvo(s)</label>
+          <div class="area-alvos-controles">
+            <button type="button" id="btn-acerto-alvo-todos" class="btn-area-sel">Selecionar todos</button>
+            <button type="button" id="btn-acerto-alvo-nenhum" class="btn-area-sel">Limpar seleção</button>
+          </div>
+          <div id="acerto-alvos-lista" class="area-alvos-lista"></div>
 
           <label>Dado de acerto</label>
           <div class="modal-dano-seletor">
@@ -258,11 +262,9 @@
             <button type="button" id="btn-rolar-acerto" class="btn-rolar-dano-modal">🎲 Rolar</button>
           </div>
 
-          <label for="acerto-valor-necessario">Valor necessário para acertar</label>
-          <input type="number" id="acerto-valor-necessario" placeholder="Ex: CA do alvo" min="1" />
-
           <div id="acerto-resultado-wrap" class="acerto-resultado-wrap" style="display:none;">
             <div id="acerto-resultado-display" class="acerto-resultado-display"></div>
+            <div id="acerto-resultado-alvos" class="acerto-resultado-alvos"></div>
           </div>
 
           <div class="acerto-botoes">
@@ -329,6 +331,16 @@
         <div id="modal-dano-atacante-wrap" class="modal-dano-atacante-wrap" style="display:none;">
           <label for="modal-dano-atacante">Atacante</label>
           <select id="modal-dano-atacante" class="modal-dano-select"></select>
+        </div>
+
+        <!-- Alvo(s) (só no modo dano) -->
+        <div id="modal-dano-alvos-wrap" class="modal-dano-alvos-wrap" style="display:none;">
+          <label>Alvo(s)</label>
+          <div class="area-alvos-controles">
+            <button type="button" id="btn-dano-alvo-todos" class="btn-area-sel">Selecionar todos</button>
+            <button type="button" id="btn-dano-alvo-nenhum" class="btn-area-sel">Limpar seleção</button>
+          </div>
+          <div id="modal-dano-alvos-lista" class="area-alvos-lista"></div>
         </div>
 
         <div class="form-heroi">
@@ -445,6 +457,63 @@
       </div>
     </div>
 
+    <!-- Modal Cura em Área -->
+    <div id="modal-cura-area" class="modal oculto">
+      <div class="modal-conteudo">
+        <span class="fechar-modal" id="fechar-cura-area">&times;</span>
+        <h2>💚 Cura em Área</h2>
+
+        <div class="modal-dano-atacante-wrap">
+          <label for="cura-area-curador">Curador</label>
+          <select id="cura-area-curador" class="modal-dano-select"></select>
+        </div>
+
+        <div class="form-heroi">
+          <label>Rolar cura</label>
+          <div class="modal-dano-seletor">
+            <div class="modal-dano-seletor-grupo">
+              <label>Qtd</label>
+              <input type="number" id="cura-area-qtd" value="1" min="1" max="20" />
+            </div>
+            <span class="modal-dano-seletor-sep">d</span>
+            <div class="modal-dano-seletor-grupo">
+              <label>Dado</label>
+              <select id="cura-area-tipo">
+                <option value="4">4</option>
+                <option value="6">6</option>
+                <option value="8" selected>8</option>
+                <option value="10">10</option>
+                <option value="12">12</option>
+                <option value="20">20</option>
+              </select>
+            </div>
+            <div class="modal-dano-seletor-grupo">
+              <label>Mod</label>
+              <input type="number" id="cura-area-modificador" value="0" />
+            </div>
+            <button type="button" id="btn-rolar-cura-area" class="btn-rolar-dano-modal">🎲 Rolar</button>
+          </div>
+
+          <div class="modal-dano-resultado-wrap">
+            <span id="cura-area-resultado" class="modal-dano-valor modal-dano-valor--cura">—</span>
+            <span id="cura-area-formula" class="modal-dano-formula"></span>
+          </div>
+
+          <label for="cura-area-valor-manual">Ou digite o valor</label>
+          <input type="number" id="cura-area-valor-manual" placeholder="Valor da cura" min="0" />
+
+          <label>Selecionar alvos</label>
+          <div class="area-alvos-controles">
+            <button type="button" id="btn-cura-area-todos" class="btn-area-sel">Selecionar todos</button>
+            <button type="button" id="btn-cura-area-nenhum" class="btn-area-sel">Limpar seleção</button>
+          </div>
+          <div id="cura-area-alvos-lista" class="area-alvos-lista"></div>
+
+          <button id="btn-confirmar-cura-area" class="btn-confirmar btn-confirmar-cura">💚 Aplicar Cura em Área</button>
+        </div>
+      </div>
+    </div>
+
     <!-- Modal Coletânea de Monstros -->
     <div id="modal-monstros-lista" class="modal oculto">
       <div class="modal-conteudo modal-monstros-conteudo">
@@ -467,7 +536,6 @@
         <div class="painel-combate-esquerda">
           <h2>Combate</h2>
           <button id="btn-abrir-monstros" class="btn-abrir-monstros">⚔️ Adicionar Monstro</button>
-          <button class="btn-area-cab" id="btn-abrir-area" title="Dano em área">💥 Área</button>
         </div>
         <div class="painel-combate-rodada">
           <div class="rodada-iniciativa-caixa">
@@ -536,13 +604,25 @@
     </section>
 
 <section class="painel turno">
-      <h2>Controle de Turno</h2>
+      <div class="painel-cabecalho">
+        <h2>Controle de Turno</h2>
+        <div class="painel-cabecalho-botoes">
+          <button class="btn-area-cab" id="btn-abrir-area" title="Dano em área">💥 Dano em Área</button>
+          <button class="btn-area-cab btn-area-cab--cura" id="btn-abrir-cura-area" title="Cura em área">💚 Cura em Área</button>
+        </div>
+      </div>
 
-      <!-- Combatente ativo em destaque -->
-      <div id="turno-ativo-card" class="turno-ativo-card oculto">
-        <!-- O conteúdo será injetado dinamicamente pelo script para espelhar o painel de combate -->
+      <!-- Combatente ativo em destaque + card de condições ao lado -->
+      <div id="turno-ativo-linha" class="turno-ativo-linha oculto">
+        <div id="turno-ativo-card" class="turno-ativo-card">
+          <!-- O conteúdo será injetado dinamicamente pelo script para espelhar o painel de combate -->
+        </div>
+        <div id="turno-ativo-condicoes-card" class="turno-ativo-condicoes-card"></div>
       </div>
       <div id="turno-vazio-msg" class="turno-dica">Adicione combatentes e avance o turno.</div>
+
+      <!-- Ações do combatente ativo (fora do card) -->
+      <div id="turno-ativo-acoes" class="turno-ativo-acoes oculto"></div>
 
       <!-- Botões de controle turno -->
       <div class="turno-controles">
